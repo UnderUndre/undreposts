@@ -36,16 +36,17 @@ Phase 2 — Social features & SSE
 - T2.9 [BE] Input validation & typed error handling (Zod/Payload) — Backend-specialist — 1d
 - T2.10 [BE] Structured logging instrumentation (pino-style) — Backend-specialist — 0.5d
 - T2.11 [BE] Implement `CustomEmoji` collection + upload handling (SVG sanitization) — Backend-specialist — 1d
-- T2.12a [BE] Giveaway entry + content-only winner selection (random from unique entrants) — Backend-specialist — 0.5d
-- T2.12b [BE] Giveaway product/paid winner delegation via undrlla contract — Backend-specialist — 0.5d
+- T2.12a [BE] Giveaway entry + content-only winner selection (random from unique entrants) — Backend-specialist — 0.5d — optional P2
+- T2.12b [BE] `status: wave-2-backlog` Giveaway product/paid winner delegation via undrlla contract — Backend-specialist — 0.5d — **do not run in Wave-1**
 - T2.13b [BE] Output sanitization (DOMPurify) for rendered rich text + comments + SVG-safe emoji display — Backend-specialist — 0.5d
 
-# Auction integration (commerce seam - hard dependency on undrlla)
+# Auction integration — WAVE-2 BACKLOG (hygiene 2026-07-30)
+# status: do-not-implement for Wave-1 release; not on critical path
 
-- T2.13 [BE] Finalize `AuctionRef` contract adapter interface and reference schema — Backend-specialist — 1d
-- T2.14 [BE] Implement `AuctionRef` adapter, bid-submit adapter, and server-side contract shim (test double for CI) — Backend-specialist — 1.5d
-- T2.15 [E2E] Contract integration e2e tests (CI: mock contract shim; release gate: undrlla staging endpoint) — Test-engineer — 1.5d
-- T2.16 [OPS] Cross-repo staging integration & handshake (undrlla staging endpoint, auth, env) — DevOps-engineer — 1d
+- T2.13 [BE] `status: wave-2-backlog` Finalize `AuctionRef` contract adapter interface and reference schema — Backend-specialist — 1d
+- T2.14 [BE] `status: wave-2-backlog` Implement `AuctionRef` adapter, bid-submit adapter, and server-side contract shim — Backend-specialist — 1.5d
+- T2.15 [E2E] `status: wave-2-backlog` Contract integration e2e (undrlla staging) — Test-engineer — 1.5d
+- T2.16 [OPS] `status: wave-2-backlog` Cross-repo staging handshake for auctions — DevOps-engineer — 1d
 
 Phase 3 — UI, admin, tests
 
@@ -87,12 +88,6 @@ Phase 4 — Hardening & release
 - T3.5 → T3.3
 - T2.3 → T3.2 + T3.3
 - T2.1 → T2.13b
-- T2.13 → T2.14
-- T1.3 → T2.13
-- T2.14 → T3.2 + T3.3
-- T2.16 → T2.15
-- T2.14 → T2.15
-- T2.15 → T4.3
 - T4.4 → T4.3
 - T4.5 → T4.3
 - T4.1 → T2.3 + T2.7
@@ -100,21 +95,24 @@ Phase 4 — Hardening & release
 - T2.10 → T1.2
 - T2.11 → T2.2 + T2.8
 - T2.12a → T2.1
-- T2.12b → T2.13 + T2.14
+# Wave-2 only (not Wave-1 edges):
+# T2.13 → T2.14 → T2.15; T2.16 → T2.15; T2.12b → T2.13 + T2.14
 
 ## Agent Summary
 
-| Tag     | Role           | Primary tasks                                                                                                   |
-| ------- | -------------- | --------------------------------------------------------------------------------------------------------------- |
-| [SETUP] | Setup/Worktree | T0.1                                                                                                            |
-| [BE]    | Backend        | T0.2, T0.3, T1.2, T1.3, T2.1, T2.1b, T2.2, T2.5, T2.6, T2.9, T2.10, T2.11, T2.12a, T2.12b, T2.13, T2.13b, T2.14 |
-| [DB]    | Database       | T1.1, T2.4                                                                                                      |
-| [OPS]   | DevOps         | T2.3, T2.7, T2.8, T2.16, T4.5                                                                                   |
-| [FE]    | Frontend       | T3.1, T3.2, T3.2b, T3.4, T3.5                                                                                   |
-| [E2E]   | Testing        | T3.3, T2.15                                                                                                     |
-| [SEC]   | Security       | T4.2, T4.4                                                                                                      |
-| [PERF]  | Performance    | T4.1                                                                                                            |
-| [DOC]   | Documentation  | T4.3                                                                                                            |
+| Tag     | Role           | Primary tasks (Wave-1)                                                                                    |
+| ------- | -------------- | --------------------------------------------------------------------------------------------------------- |
+| [SETUP] | Setup/Worktree | T0.1                                                                                                      |
+| [BE]    | Backend        | T0.2, T0.3, T1.2, T1.3, T2.1, T2.1b, T2.2, T2.5, T2.6, T2.9, T2.10, T2.11, T2.12a, T2.13b                 |
+| [DB]    | Database       | T1.1, T2.4                                                                                                |
+| [OPS]   | DevOps         | T2.3, T2.7, T2.8, T4.5                                                                                    |
+| [FE]    | Frontend       | T3.1, T3.2, T3.2b, T3.4, T3.5                                                                             |
+| [E2E]   | Testing        | T3.3                                                                                                      |
+| [SEC]   | Security       | T4.2, T4.4                                                                                                |
+| [PERF]  | Performance    | T4.1                                                                                                      |
+| [DOC]   | Documentation  | T4.3                                                                                                      |
+
+Wave-2 backlog (not Wave-1 dispatch): T2.12b, T2.13, T2.14, T2.15, T2.16
 
 ## Parallel lanes
 
@@ -125,7 +123,8 @@ Phase 4 — Hardening & release
 
 ## Critical path
 
-JIT provisioning (T1.3) remains on the critical path because authorship relations and admin flows depend on the `Members` mirror. With the decision to integrate auctions now, the auction integration tasks (T2.13..T2.16) and the contract integration tests (T2.15) are also on the critical path and gate the final release. T2.16 (staging handshake) must complete before T2.15 (contract e2e) can run against staging.
+JIT provisioning (T1.3) remains on the critical path because authorship relations and admin flows depend on the `Members` mirror. **Wave-1 release path:** T1.3 → social/SSE (T2.*) → T3.3 → T4.2/T4.4/T4.5 → T4.3.  
+**Auctions (T2.13–T2.16) are NOT on the Wave-1 critical path** (hygiene 2026-07-30).
 
 ## Total tasks & estimates
 

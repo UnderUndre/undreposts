@@ -16,7 +16,7 @@ Primary goals
 ## Technical Context
 
 - Platform: PayloadCMS forked monorepo (app/collection layer customizations).
-- Identity: undrlla IdP is authoritative; undrepost maintains a local `Members` mirror created on first login using IdP `sub` claim and caching role/profile. Re-synced on every login.
+- Identity: **undrlla Directus** IdP is authoritative (JWT/JWKS per ecosystem `005`); undrepost maintains a local `Members` mirror created on first login using IdP `sub` / Directus user id and caching role/profile. Re-synced on every login. **Not** Better-Auth.
 - Tenancy: Single-tenant per deploy (validate IdP claim `tenant_id` against instance config).
 - Real-time: SSE endpoint for social counts. Backend holds counts and publishes deltas; clients subscribe to updates for optimistic UI.
 
@@ -58,10 +58,10 @@ Phase 2 — Social features & SSE (5–7 days)
 - Async materialized counters with periodic reconciliation job.
 - Output sanitization (DOMPurify) for rendered content.
 
-Commerce integration & release gate
+Commerce integration (Wave-2 — **not** Wave-1 release gate)
 
-- Per project decision, auctions are a MUST for this init (FR-030) and therefore the release is gated on undrlla readiness. Cross-repo integration tasks are added in `tasks.md` (T2.13..T2.16) to finalize the auction contract, implement the `AuctionRef` adapter, provision staging handshakes, and run contract e2e tests.
-- The final GA release requires an undrlla-ready staging endpoint and passing contract integration tests; early content work may proceed, but the release pipeline will verify the undrlla signal before merging release artifacts.
+- Hygiene 2026-07-30: FR-030 auctions and product/paid giveaways are **deferred**. Wave-1 GA does **not** require undrlla auction staging or T2.13–T2.16.
+- When undrlla defines an auction FR, promote T2.13–T2.16 from backlog and re-open a Wave-2 feature slug.
 
 SSE reliability defaults (to be tuned in plan):
 
@@ -118,10 +118,11 @@ Product-specific concerns (payment boundary, PII handling, auth posture) are gov
 ## Next steps
 
 1. Create the collections and JIT endpoint skeleton (`Members`, `Posts`).
-2. Implement identity flow & admin bootstrap (`sub` only).
+2. Implement **Directus** identity flow & admin bootstrap (`sub` only; JWKS validation).
 3. Build Reaction counters (async + reconciler) and SSE proof-of-concept.
-4. Coordinate with undrlla to finalize auction contract and staging integration (T2.13..T2.16), then run contract integration e2e (T2.15).
+4. Wave-1 release: schema money-state audit + license check — **no** auction gate.
 5. Run integration tests and basic load test on SSE.
+6. (Later / Wave-2) Auction contract + T2.13–T2.16 when undrlla engine exists.
 
 ---
 
