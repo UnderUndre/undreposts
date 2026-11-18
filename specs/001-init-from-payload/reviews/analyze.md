@@ -1,92 +1,98 @@
 # SpecKit Analyze: 001-init-from-payload
 
-**Reviewer**: analyze
-**Reviewed at**: 2026-06-23T16:04:50.7999797+03:00
-**Commit**: NO_GIT
+**Reviewer**: analyze (ZCode / GLM-5.3-Flash self-consistency)
+**Reviewed at**: 2026-11-18T21:20:00+04:00
+**Commit**: c45fa2ba466c72670b3032393d6af265f8d0c0cd — **note: working tree is ahead of HEAD** (uncommitted fix-pass 2026-11-18 applying reviews/zcode.md F1–F21; this analysis evaluates the working tree, not the commit)
 **Artifacts**: spec.md, plan.md, tasks.md, data-model.md, contracts/members.contract.md, quickstart.md
+**Supersedes**: analyze.md 2026-06-23 (CRITICAL @ NO_GIT — stale: CR-AU was resolved by hygiene 2026-07-30 and the 2026-11-18 fix-pass)
 
-## Findings (summary)
+## Findings
 
-Most previously flagged structural issues were addressed: `tasks.md` now contains bracketed `[AGENT]` tags, an explicit `Dependency Graph`, `Polls` and `Newsletter` tasks, and SSE/storage infra tasks. The remaining blocker is a requirements/sequence contradiction on auctions which must be resolved in the spec.
+| ID  | Category      | Severity | Location(s) | Summary | Recommendation |
+| --- | ------------- | -------- | ----------- | ------- | -------------- |
+| O1  | Ops readiness (pass M) | **HIGH** | tasks.md T2.10, plan.md Phase 4 | Structured logging exists (FR-041/T2.10), rollback runbook now exists (T4.6), but **no metric emission / tracing task** — SSE latency (plan acceptance "~1s"), counters drift, syndication failures are unmeasurable in prod. Pass M flags missing telemetry as HIGH. | Extend T2.10 to include metric emission (counters/histograms: SSE latency, counter drift, JIT provisioning outcome, syndication status) or add T2.10b; no full OTel stack required for Wave-1 — one metrics surface is enough. |
+| G1  | Agent routing (pass G) | MEDIUM | tasks.md Dependency Graph | **T4.2 (SEC security review) is orphaned** — no edges in the graph (survivor of the same defect class as the old T1.4 orphan fixed in the fix-pass). Security review ordering vs T1.3/T1.5/T3.3 is unwired. | Add `T3.3 → T4.2` (security review after integration tests) or `T1.5 → T4.2`. |
+| C1  | Constitution (VII) | MEDIUM | git state | The 2026-11-18 fix-pass mutated all five artifacts **without stage tags and without commit** — Principle VII requires `<stage>/<slug>/v<N>` tags per mutating stage. HEAD (c45fa2ba) predates the fixes, so tagging now would pin the wrong tree. | Commit the fix-pass, then tag `plan/001-init-from-payload/v1` + `tasks/001-init-from-payload/v1` at the fix commit. |
+| K1  | Spike governance (pass K) | MEDIUM | tasks.md T0.4, T1.5 | Two spike tasks (IdP conformance, custom-auth strategy) have **no `research.md`** — no numerical verification metrics (JWKS fetch latency, token validation p95) and no explicit Spike Disposal Path (throwaway vs promote). | Create `research.md` documenting both spikes: success metrics (e.g., 5-check validator p95 < 50ms; strategy API exists/absent) + disposal decision rule. |
+| I1  | Inconsistency | LOW | spec.md Waves vs FR-046 | FR-046 self-labels "post-Wave-1" but the Waves section lists only Wave 1 / Wave 2 — the bucket FR-046 lives in is unnamed there. | Add one line to Wave 2: "post-Wave-1 (undrepay-gated): FR-046 (T2.19)". |
+| D1  | Duplication | LOW | spec.md FR-014 / plan.md Auth section / contract Session Bridge | Session-bridge parameters (24h/2h, HttpOnly, opaque) are stated in three documents. Values currently identical; three copies = three drift targets. | Single source: contract §Session Bridge is authoritative; spec/plan reference it by pointer instead of restating TTLs. |
+| U1  | Underspecification | LOW | spec.md FR-046 | The rewrite silently dropped the original "private answer premium" option without a note — scope reduction not recorded. | Either restore as "premium/private-answer handling is an undrepay-side product, out of undrepost scope" or add a dated drift note. |
+| U2  | Underspecification | LOW | data-model.md QuestionPool | `funded` (boolean) and `status` (open\|funded\|answered) encode the same state twice. | Drop the boolean, derive from `status`, or document the invariant (`funded == status ∈ {funded, answered}`). |
+| I2  | Inconsistency | LOW | plan.md Next steps, Risks | "Next steps" list predates the fix-pass (no T0.4/T1.5/T2.17); Risks still says "Start with in-process SSE for Wave 1" while infra tasks provision Redis/pubsub for staging. | Refresh both bullets: insert session-bridge/conformance steps; align SSE topology wording (in-process dev, Redis staging/prod). |
+| H1  | Commercial (pass H) | LOW | business plan §1 vs FR-046 | Business-plan topology lists FR-046 as an engine capability; spec parks it post-Wave-1 gated on undrepay. Not SKU drift ($149 = auto-poster + newsletter — covered by T2.17/T2.6), but the BP should not promise a dated feature. | Add alias/note line to BP changelog: FR-046 lands post-Wave-1, undrepay-gated. |
 
-| ID    | Category                                      | Severity | Location(s)                              | Summary                                                                                                                                                                                                                                          | Recommendation                                                                                                             |
-| ----- | --------------------------------------------- | -------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| CR-AU | Requirement contradiction                     | CRITICAL | spec.md (FR-030) vs spec.md (Sequencing) | `FR-030` declares auctions MUST be fully integrated in this init; project lead chose to keep `FR-030` as a MUST and make auction integration blocking. Cross-repo integration tasks (T2.13..T2.16) and contract e2e are required before release. | Add contract integration tasks, staging handshake (T2.13..T2.16) and a release gate (undrlla staging signal + T2.15 pass). |
-| H1    | Money-state assurance missing                 | HIGH     | spec.md (FR-003)                         | `FR-003` forbids storing commerce money-state; there is no explicit audit/task verifying schemas/code will not introduce money-state for auction integrations.                                                                                   | Added recommended task: `T4.4 [SEC] Schema audit: verify no money-state persisted` and CI pre-merge check.                 |
-| M1    | License / copyleft check task missing         | MEDIUM   | spec.md (FR-002)                         | Runtime license/copy-left verification is required by FR-002 but not explicitly scheduled as a task.                                                                                                                                             | Added recommended task: `T4.5 [OPS] License & copyleft compliance check` as a release gate.                                |
-| M2    | Pluggable-adapter preservation underspecified | MEDIUM   | spec.md (FR-013)                         | The `pluggable-adapter` philosophy is a SHOULD; tasks don't explicitly allocate plugin/adapter abstraction work.                                                                                                                                 | Add engineering task to ensure adapters are pluggable (config + plugin API), or mark as backlog for Wave 2 if deferred.    |
-| L1    | Minor: Agent summary / alignment              | LOW      | tasks.md (Agent Summary)                 | Agent Summary table exists; add owner/contact and expected workload to improve dispatch clarity.                                                                                                                                                 | Optional: update Agent Summary with owners and ETA blocks.                                                                 |
+No CRITICAL findings. No duplication of requirements, no unresolved placeholders, no circular dependencies, no shared-file agent conflicts, no copyleft dependencies introduced (Resend = commercial SaaS; adapters are isolated per FM-02).
 
-## Coverage Summary (post-remediation)
+## Coverage Summary
 
-| Requirement Key               | Has Task?      | Task IDs         | Notes                                                                                                                                     |
-| ----------------------------- | -------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-001 (fork)                 | Yes            | T0.1             | Setup fork worktree                                                                                                                       |
-| FR-002 (license)              | Yes            | T4.5             | License/compliance check added (release gate)                                                                                             |
-| FR-003 (no money-state)       | Yes            | T4.4             | Schema audit task added (pre-merge gate)                                                                                                  |
-| FR-004 (single-tenant)        | Yes            | T1.3             | Tenant validation in JIT provisioning                                                                                                     |
-| FR-010 (Posts)                | Yes            | T1.2             | Posts collection implemented                                                                                                              |
-| FR-011 (Comments)             | Yes            | T2.1             | Comments collection implemented                                                                                                           |
-| FR-012 (Media/S3)             | Yes            | T2.8             | Storage adapter & CI fixture                                                                                                              |
-| FR-013 (pluggable adapters)   | Partial        | —                | Needs explicit adapter-api task                                                                                                           |
-| FR-014 (IdP / Members mirror) | Yes            | T1.3             | JIT provisioning task present                                                                                                             |
-| FR-020 (Reactions)            | Yes            | T2.2             | Reaction events + counters present                                                                                                        |
-| FR-021 (CustomEmoji)          | Yes            | T2.11            | CustomEmoji collection added                                                                                                              |
-| FR-022 (Polls)                | Yes            | T2.5             | Polls collection + unique vote                                                                                                            |
-| FR-023 (Newsletter)           | Yes            | T2.6             | Newsletter backend & UI tasks                                                                                                             |
-| FR-030 (Auctions)             | Yes / BLOCKING | T2.13..T2.16     | Project lead chose to keep auctions as a MUST; cross-repo tasks added and release is gated on undrlla readiness and T2.15 contract tests. |
-| FR-031 (Giveaways)            | Yes            | T2.12            | Giveaways reference implemented                                                                                                           |
-| FR-032 (paid membership)      | Out of scope   | —                | Deferred per spec                                                                                                                         |
-| FR-040 (validation)           | Yes            | T2.9             | Zod/Payload validation task                                                                                                               |
-| FR-041 (logging)              | Yes            | T2.10            | Structured logging task                                                                                                                   |
-| FR-042 (SSE)                  | Yes            | T2.3, T2.4, T2.7 | SSE service + counters + infra tasks added                                                                                                |
+| Requirement Key | Has Task? | Task IDs | Notes |
+| --------------- | --------- | -------- | ----- |
+| FR-001 (fork discipline) | Yes | T0.1, T0.3 | |
+| FR-002 (license clean) | Yes | T4.5 | release gate |
+| FR-003 (no money-state) | Yes | T4.4 | + FR-046 rewrite enforces boundary |
+| FR-004 (single-tenant) | Yes | T1.3 | tenant claim validation |
+| FR-005 (Directus IdP) | Yes | T0.4, T1.3 | T0.4 proves interlock first |
+| FR-006 (Wave-1 scope) | Yes | phases + P0 gate note | |
+| FR-010 (posts) | Yes | T1.2, T3.1, T3.2 | |
+| FR-011 (comments+gating) | Yes | T2.1, T2.1b | defaults in plan.md |
+| FR-012 (media S3) | Yes | T2.8 | |
+| FR-013 (pluggable adapters) | Yes (implicit) | T1.5 (auth), T2.1b (gating), T2.8 (storage), T2.17 (syndication) | each pluggable axis has a task; previous "Partial" resolved |
+| FR-014 (IdP/session) | Yes | T0.4, T1.3, T1.5 | session bridge specced |
+| FR-020 (reactions) | Yes | T2.2, T2.4, T2.4b | |
+| FR-021 (custom emoji) | Yes | T2.11 | |
+| FR-022 (polls) | Yes | T2.5, T3.4 | |
+| FR-023 (newsletter) | Yes | T2.6, T3.5 | transport default: Resend |
+| FR-030 (auctions) | Deferred | T2.13–T2.16 (`wave-2-backlog`) | not a Wave-1 gate (F1 fixed) |
+| FR-031 (giveaways) | Yes | T2.12a; T2.12b deferred | |
+| FR-032 (paid membership) | n/a | — | out of scope by design |
+| FR-040 (input validation) | Yes | T2.9 | |
+| FR-041 (structured logging) | Yes | T2.10 | metrics gap → O1 |
+| FR-042 (SSE) | Yes | T2.3, T2.4, T2.7 | |
+| FR-043 (output sanitization) | Yes | T2.13b, T2.11 | |
+| FR-044 (SSE authn) | Yes | T2.3 | |
+| FR-045 (auto-poster) | Yes | T2.17, T2.18, T3.2? (publish hook) | $149 SKU headline covered |
+| FR-046 (QuestionPool) | Yes (post-Wave-1) | T2.19 | gated on undrepay `INTEGRATION.md` |
+
+All user stories US1–US8 map to tasks; US9/US10 deferred by design; US11 (sync-fork) → T0.3.
 
 ## Constitution Alignment Issues
 
-- Principle VI (Cross-AI Review Gate): This analysis produces a CRITICAL finding; gate remains closed until the CRITICAL contradiction on `FR-030` is resolved. The constitution requires this gate to block implementation. |
+- **VI (Cross-AI Review Gate)** — informational, not an artifact defect: all 4 existing external reviews (claude/grok/opencode/zcode) predate the 2026-11-18 fix-pass and carry non-PASS verdicts; the gate requires ≥2 external PASS on the **current** artifacts before `/speckit.implement`.
+- **VII (Artifact Versioning)** — see C1 (fix-pass uncommitted/untagged).
+- **IX (Two-Phase Flow)** — conforms: branch renamed to `specs/001-init-from-payload` (fix F17).
 
-## Unmapped / Weakly Mapped Requirements
+## Commercial / Business Plan Alignment
 
-- FR-002 (license/copy-left verification) — add a release/lint task.
-- FR-003 (no money-state) — add schema audit and PR checklist to enforce.
-- FR-013 (pluggable adapters) — add adapter abstraction task or backlog note.
+- Plan files loaded: `undreplans/docs/projects/undreposts/undreposts-business-plan.md` (v1.0), `undreposts-demand.md`.
+- Focus/hard laws checked: FM-01 (no B2B social network — compliant), FM-02 (adapter isolation — in FR-045/T2.17), $149 SKU composition (auto-poster T2.17 + newsletter T2.6/T3.5 — covered), kill criteria (business-layer, n/a).
+- Findings: no commercial drift; one LOW alias note (H1).
+
+## Unmapped Tasks
+
+None. T4.1 (perf), T4.2 (security review), T3.2b (list optimization) map to NFR/cross-cutting concerns.
 
 ## Metrics
 
-- Total Requirements: 19
-- Total Tasks: 30
-- Coverage % (requirements with ≥1 explicit task): 84% (16 / 19)
+- Total Requirements: 25 FR keys
+- Total Tasks: 45 (39 Wave-1 primary; 5 wave-2-backlog; 1 post-Wave-1; verified by grep)
+- Coverage % (requirements with ≥1 task): 96% (24/25; FR-032 out of scope by design — 100% of in-scope)
 - Ambiguity count: 0
-- Duplication count: 0
-- CRITICAL count: 1
+- Duplication count: 1 (D1, LOW)
+- CRITICAL count: 0
 - HIGH count: 1
-- MEDIUM count: 2
-- LOW count: 1
+- MEDIUM count: 3
+- LOW count: 6
 
 ## VERDICT
 
 ```yaml
-verdict: CRITICAL
+verdict: MEDIUM
 override_reason: null
 reviewer: analyze
-reviewed_at: 2026-06-23T16:04:50.7999797+03:00
-commit: NO_GIT
-critical_count: 1
+reviewed_at: 2026-11-18T21:20:00+04:00
+commit: c45fa2ba466c72670b3032393d6af265f8d0c0cd (working tree ahead — uncommitted fix-pass 2026-11-18)
+critical_count: 0
 high_count: 1
-medium_count: 2
-low_count: 1
+medium_count: 3
+low_count: 6
 ```
-
-## Top Findings (quick)
-
-1. CRITICAL — `FR-030` (Auctions) contradicts the Wave-1 recommendation in the same spec. Decide: integrate auctions now (block on undrlla readiness) or defer auctions to Wave 2 and update `FR-030`.
-2. HIGH — No explicit schema/audit task guarantees `FR-003` (no money-state) is enforced; add schema review and automated PR checks.
-3. MEDIUM — Add a license/compliance check task (`FR-002`) and clarify adapter/plugin tasks (`FR-013`).
-
-## Recommended Next Actions (post-remediation)
-
-1. Coordinate with undrlla to provide a staging endpoint and contract health signal; run `T2.15` contract integration e2e. This is required for GA merge.
-2. Implement `T4.4 [SEC] Schema audit` and `T4.5 [OPS] License & copyleft compliance` as release gate tasks (added to `tasks.md`).
-3. Re-run `/speckit.analyze` to validate artifacts; if PASS, request two external `/speckit.review` runs per Principle VI.
-
-I have applied the project lead's choice to keep auctions as blocking, added cross-repo auction tasks (T2.13..T2.16), and added release-gate audit/license tasks (T4.4/T4.5). Re-run `/speckit.analyze` if you want me to confirm the new verdict.
