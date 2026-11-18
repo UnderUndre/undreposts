@@ -12,16 +12,16 @@ Phase 0 — Research & scaffolding
 
 - T0.1 [SETUP] Setup fork worktree and branch — Backend-specialist — 0.5d
 - T0.2 [BE] Validate Payload v4 beta dependencies and dev scripts — Backend-specialist — 0.5d
-- T0.3 [BE] Pin Payload v4-beta build, document rebase/patch points (escape-hatch ladder), track stable tag — Backend-specialist — 0.5d
+- T0.3 [BE] Pin Payload v4-beta build, document rebase/patch points (escape-hatch ladder), track stable tag — Backend-specialist — 0.5d — pin = upstream main at T0.1 (`7a41086106` = 4.0.0-beta.10 on 2026-11-19; beta.0 base superseded); record beta.10 workspace shape (explicit templates list + `catalog`/TS7, tracked `app/`+`app-tanstack/`) + the `apps/*` addition as patch points (review F7)
 - T0.4 [BE/OPS] IdP contract-conformance spike: mint a staging Directus token, run the full 5-check validator incl. JWKS/RS256 fetch (proves the §3.2/§3.3 aud interlock before T1.3 builds on it) — Backend-specialist — 0.5d
 
 Phase 1 — Core collections & identity
 
 - T1.1 [DB] Implement `Members` mirror collection schema (with UNIQUE(sub) + syncedAt) — Backend-specialist — 1d
-- T1.2 [BE] Implement `Posts` collection schema & basic CRUD API — Backend-specialist — 1d
+- T1.2 [BE] Implement `Posts` collection schema & basic CRUD API — Backend-specialist — 1d — wire `@payloadcms/plugin-seo` on Posts: canonical URL + OG metadata (review F3, business-plan FM-03)
 - T1.3 [BE] JIT-provision endpoint + login hook (upsert Member, ON CONFLICT, re-sync claims, token validation per contract) — Backend-specialist — 2d
 - T1.4 [BE] Admin bootstrap by `sub` allowlist only (no email matching) — Backend-specialist — 0.5d
-- T1.5 [BE] Payload v4-beta custom auth strategy spike + opaque session bridge (login → 5-check → JIT → opaque HttpOnly session 24h/2h; admin strategy or middleware fallback; JWKS cache + last-known-good policy) — Backend-specialist — 2d
+- T1.5 [BE] Payload v4-beta custom auth strategy spike + opaque session bridge (login → 5-check → JIT → opaque HttpOnly session 24h/2h; admin strategy or middleware fallback; JWKS cache + last-known-good policy) — Backend-specialist — 2d — expose env seam `AUTH_STRATEGY=directus|payload-local` on the Members collection config for standalone $149-SKU builds (review F4, FR-013)
 
 Phase 2 — Social features & SSE
 
@@ -44,9 +44,9 @@ Phase 2 — Social features & SSE
 - T2.12a [BE] Giveaway entry + content-only winner selection (random from unique entrants) — Backend-specialist — 0.5d — optional P2
 - T2.12b [BE] `status: wave-2-backlog` Giveaway product/paid winner delegation via undrlla contract — Backend-specialist — 0.5d — **do not run in Wave-1**
 - T2.13b [BE] Output sanitization (DOMPurify) for rendered rich text + comments + SVG-safe emoji display — Backend-specialist — 0.5d
-- T2.17 [BE] Social adapter interface + Telegram adapter (FR-045 Wave-1, P2 lane) + `SyndicationLog` dedup/retry (platform-API failure MUST NOT fail the publish — business-plan FM-02) — Backend-specialist — 1.5d
+- T2.17 [BE] Social adapter interface + Telegram adapter (FR-045 Wave-1, P2 lane) + `SyndicationLog` dedup/retry (platform-API failure MUST NOT fail the publish — business-plan FM-02) — Backend-specialist — 1.5d — append canonical post URL to outbound syndication payloads (review F3)
 - T2.18 [BE] X/Twitter adapter (FR-045, P2 optional) — Backend-specialist — 1d — optional P2
-- T2.20 [BE] Member tombstone sweep job (daily: compare mirror `sub`s vs IdP active users, apply tombstones) — Backend-specialist — 0.5d
+- T2.20 [BE] Member tombstone sweep job (daily: compare mirror `sub`s vs IdP active users, apply tombstones) — Backend-specialist — 0.5d — fail-closed: read-only `IDP_M2M_TOKEN` scoped to bound tenant (or signed deletion webhook); abort sweep on HTTP error / non-200 / >5% tombstone share per run (review F2)
 - T2.19 [BE] `status: post-wave-1` QuestionPool status-mirror (undrepay webhook → `funded` flag; FR-046; **NO pledge ledger in undrepost** — FR-003) — Backend-specialist — 1d — gated on undrepay `INTEGRATION.md` contract
 
 # Auction integration — WAVE-2 BACKLOG (hygiene 2026-07-30)
@@ -60,7 +60,7 @@ Phase 2 — Social features & SSE
 Phase 3 — UI, admin, tests
 
 - T3.1 [FE] Payload Admin customizations: posts list, member view — Frontend-specialist — 1.5d
-- T3.2 [FE] Post editor and public post page component (SSE client) — Frontend-specialist — 2d
+- T3.2 [FE] Post editor and public post page component (SSE client) — Frontend-specialist — 2d — render `<link rel="canonical">` + OG tags + `/blog/rss.xml` (review F3, business-plan §2.9)
 - T3.2b [FE/BE] Post list query optimization (batched author lookup, cached counts, N+1 elimination) — Frontend-specialist / Backend-specialist — 0.5d
 - T3.3 [E2E] Integration tests: auth flows, JIT provisioning (incl. concurrent), SSE subscribe — Test-engineer — 2d
 - T3.4 [FE] Polls UI & widget integration — Frontend-specialist — 1.5d
@@ -104,7 +104,7 @@ Phase 4 — Hardening & release
 - T3.3 → T4.2
 - T2.3 → T3.2 + T3.3 + T4.1
 - T2.7 → T4.1
-- T2.11 → T2.2 + T2.8
+- T2.11 → T2.2
 - T4.4 → T4.3
 - T4.5 → T4.3
 - T4.6 → T4.3

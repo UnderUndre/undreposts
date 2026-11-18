@@ -9,7 +9,7 @@
 
 ## Overview
 
-`undrepost` is the rewritten content/social platform, founded as a **GitHub fork of `payloadcms/payload`** (currently `payload-monorepo` v4.0.0-beta.0). It replaces the legacy `underblog` (Next.js Pages Router + Prisma + NextAuth) by re-platforming every existing feature onto Payload-native primitives, then layering the social/commerce features planned in undrlla spec 003.
+`undrepost` is the rewritten content/social platform, founded as a **GitHub fork of `payloadcms/payload`** (base re-pinned 2026-11-19: upstream main `7a41086106` = 4.0.0-beta.10, synced before implement at T0.1 — see plan.md Phase 0). It replaces the legacy `underblog` (Next.js Pages Router + Prisma + NextAuth) by re-platforming every existing feature onto Payload-native primitives, then layering the social/commerce features planned in undrlla spec 003.
 
 **Foundation method**: fork the upstream monorepo, track via **Sync fork**, keep customization in the **app/collection layer**. Payload is the content engine; **undrlla is Directus** (not Medusa) for commerce + **ecosystem IdP**.
 
@@ -272,9 +272,9 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 ## Assumptions
 
 - **Greenfield rewrite**: no production data migration from legacy underblog assumed; legacy schema (Prisma models) is a _mapping reference_ for the new Payload collections, not a data source.
-- Foundation is **Payload v4-beta** per the actual fork (`payload-monorepo` 4.0.0-beta.0). Beta churn is accepted and absorbed via Sync-fork discipline.
+- Foundation is **Payload v4-beta** per the actual fork (`payload-monorepo` 4.0.0-beta.10+, pinned at T0.1). Beta churn is accepted and absorbed via Sync-fork discipline. Beta.0 spec assumptions re-verified against beta.10 (`7a41086106`, 2026-11-19): auth seam `disableLocalStrategy` + `strategies?: AuthStrategy[]` intact (`packages/payload/src/auth/types.ts:269,348`).
 - Rich text migrates from TipTap to Payload's native editor (Lexical) unless a hard reason to keep TipTap emerges.
-- The blog app lives inside the fork at **`apps/undrepost/`** (resolved 2026-11-18, review F15: new top-level pnpm workspace — upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction).
+- The blog app lives inside the fork at **`apps/undrepost/`** (resolved 2026-11-18, review F15: new top-level pnpm workspace — upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction). Re-checked on beta.10 (2026-11-19): upstream now tracks singular `app/` + `app-tanstack/` dev apps — `apps/` still absent, collision surface still zero.
 - undrlla (Directus) is the **identity** backbone for undrepost; **client commerce** SoT is Medusa (`undreseller`) per ecosystem Q8–Q9 — undrepost does not own shop money-state. Auction contract is Wave-2 only.
 
 ## Dependencies

@@ -4,7 +4,7 @@ Feature branch: `specs/001-init-from-payload`
 
 ## Summary
 
-This plan implements the `undrepost` migration: fork `payload` (payload-monorepo v4.0.0-beta.0), re-platform legacy `underblog` features onto Payload collections, and add the social features and contracts described in the spec.
+This plan implements the `undrepost` migration: fork `payload` (payload-monorepo; base pinned at T0.1 to upstream main = 4.0.0-beta.10 `7a41086106`, 2026-11-19 — beta.0 → beta.10 is 850 upstream commits, sync-before-implement decided), re-platform legacy `underblog` features onto Payload collections, and add the social features and contracts described in the spec.
 
 Primary goals
 
@@ -51,7 +51,7 @@ Phase 0 — Research & scaffolding (2.5–3.5 days)
 - Pin beta build, document rebase/patch points, track stable tag (T0.3).
 - IdP contract-conformance spike (T0.4): mint a staging Directus token, run the full 5-check validator incl. JWKS/RS256 — proves the aud interlock before T1.3 builds on it.
 - Create repo worktree, branch `specs/001-init-from-payload` (branch renamed from `spec/…` to the constitution `specs/` convention, 2026-11-18).
-- **Blog app location (pinned 2026-11-18, review F15): `apps/undrepost/`** — a new top-level pnpm workspace; upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction. SC-003/SC-004 conflict claims now reference this path.
+- **Blog app location (pinned 2026-11-18, review F15): `apps/undrepost/`** — a new top-level pnpm workspace; upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction. SC-003/SC-004 conflict claims now reference this path. Re-checked on beta.10 (2026-11-19): upstream tracks singular `app/` + `app-tanstack/` dev apps — `apps/` still absent. **Base pin (T0.1)**: fork `main` fast-forwards to upstream main `7a41086106` (4.0.0-beta.10) before implement; `pnpm-workspace.yaml` on beta.10 uses an explicit templates list + `catalog` (TS7 native) instead of the beta.0 `templates/*` glob — record both shapes plus the `apps/*` addition as rebase/patch points (T0.3, review F7).
 - Generate skeleton collections and minimal app/collection layer under `apps/undrepost/`.
 
 Phase 1 — Core collections & identity (3.5–5.5 days)
