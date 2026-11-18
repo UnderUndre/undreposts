@@ -10,8 +10,8 @@ import { CheckboxField } from '../../fields/Checkbox/index.js'
 import { NumberField } from '../../fields/Number/index.js'
 import { TextInput } from '../../fields/Text/Input.js'
 import { Form } from '../../forms/Form/index.js'
-import { ExternalLinkIcon } from '../../icons/ExternalLink/index.js'
 import { MinimizeMaximizeIcon } from '../../icons/MinimizeMaximize/index.js'
+import { NewTabIcon } from '../../icons/NewTab/index.js'
 import { useConfig } from '../../providers/Config/index.js'
 import { useDocumentInfo } from '../../providers/DocumentInfo/index.js'
 import { useLocale } from '../../providers/Locale/index.js'
@@ -28,7 +28,8 @@ export const APIViewClient: React.FC = () => {
 
   const searchParams = useSearchParams()
   const { i18n, t } = useTranslation()
-  const { code } = useLocale()
+  const currentLocale = useLocale()
+  const code = currentLocale?.code
 
   const {
     config: {
@@ -66,6 +67,21 @@ export const APIViewClient: React.FC = () => {
   const [depth, setDepth] = React.useState<string>(
     searchParams.get('depth') || defaultDepth.toString(),
   )
+  const [depthAnnouncement, setDepthAnnouncement] = React.useState('')
+  const previousDepth = React.useRef(depth)
+
+  React.useEffect(() => {
+    if (previousDepth.current === depth) {
+      return
+    }
+    previousDepth.current = depth
+    const timeout = setTimeout(() => {
+      setDepthAnnouncement(`${t('general:depth')}: ${Number(depth || 0)}`)
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [depth, t])
+
   const [authenticated, setAuthenticated] = React.useState<boolean>(true)
   const [fullscreen, setFullscreen] = React.useState<boolean>(false)
   const [origin, setOrigin] = React.useState<string>(serverURL || '')
@@ -171,6 +187,9 @@ export const APIViewClient: React.FC = () => {
             }}
           >
             <div className={`${baseClass}__form-fields`}>
+              <span aria-atomic="true" className="sr-only" role="status">
+                {depthAnnouncement}
+              </span>
               {localeOptions && (
                 <LocaleSelector localeOptions={localeOptions} onChange={setLocale} />
               )}
@@ -228,7 +247,7 @@ export const APIViewClient: React.FC = () => {
                 buttonStyle="secondary"
                 className={`${baseClass}__api-url-open-button`}
                 el="anchor"
-                icon={<ExternalLinkIcon size={16} />}
+                icon={<NewTabIcon size={16} />}
                 margin={false}
                 newTab
                 size="large"
@@ -236,6 +255,7 @@ export const APIViewClient: React.FC = () => {
               />
               <Button
                 aria-label="toggle fullscreen"
+                aria-pressed={fullscreen}
                 buttonStyle="secondary"
                 className={`${baseClass}__toggle-fullscreen-button`}
                 icon={<MinimizeMaximizeIcon isMinimized={!fullscreen} />}
@@ -250,6 +270,7 @@ export const APIViewClient: React.FC = () => {
               defaultLanguage="json"
               height="100%"
               options={{
+                ariaLabel: t('general:apiResponse'),
                 fixedOverflowWidgets: true,
                 folding: true,
                 lineNumbers: 'on',

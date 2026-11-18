@@ -2,18 +2,17 @@
   .document-fields {
     width: 100%;
     display: flex;
-    --doc-sidebar-width: 325px;
   }
 
   .document-fields--has-sidebar {
     --main-width: 66.66%;
     --main-border: var(--stroke-width-small) solid var(--color-border);
-    --main-field-margin: calc(var(--gutter-h) * -1);
+    --main-field-margin: calc(var(--gutter-h) * -1 * var(--field-border-bleed, 1));
   }
 
   .document-fields--has-sidebar:has(
-      .document-fields__sidebar-wrap .document-fields__sidebar-fields > .render-fields:empty
-    ) {
+    .document-fields__sidebar-wrap .document-fields__sidebar-fields > .render-fields:empty
+  ) {
     --main-width: 100%;
     --main-border: none;
     --main-field-margin: initial;
@@ -41,12 +40,12 @@
   }
 
   .document-fields--has-sidebar .document-fields__fields > .tabs-field {
-    margin-right: var(--main-field-margin);
+    margin-inline-end: var(--main-field-margin);
   }
 
   /* Extend group border to the main/sidebar divider */
   .document-fields--has-sidebar .document-fields__fields > .group-field::before {
-    right: calc(var(--gutter-h) * -1);
+    inset-inline-end: calc(var(--gutter-h) * -1 * var(--field-border-bleed, 1));
   }
 
   .document-fields__main {
@@ -67,7 +66,7 @@
     position: var(--sidebar-wrap-position, sticky);
     top: var(--sidebar-wrap-top, var(--doc-controls-height));
     width: var(--sidebar-wrap-width, 33.33%);
-    height: var(--sidebar-wrap-height, calc(100vh - var(--doc-controls-height)));
+    height: var(--sidebar-wrap-height, calc(100dvh - var(--doc-controls-height)));
     min-width: var(--sidebar-wrap-min-width, var(--doc-sidebar-width));
     flex-shrink: var(--sidebar-wrap-flex-shrink, 0);
   }
@@ -79,6 +78,7 @@
     --sidebar-wrap-top: initial;
     --sidebar-wrap-height: initial;
     --sidebar-wrap-flex-shrink: initial;
+    display: none;
   }
 
   .document-fields__sidebar {
@@ -105,6 +105,8 @@
   }
 
   .document-fields--force-sidebar-wrap {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-color) transparent;
     display: block;
     isolation: isolate;
     --main-border: none; /* Reset the sidebar divider — the live preview window provides its own border-left */
@@ -118,12 +120,13 @@
   .document-fields--force-sidebar-wrap .document-fields__sidebar-wrap {
     position: static;
     width: 100%;
+    min-width: 0;
     height: initial;
     border-left: 0;
   }
 
   .document-fields--force-sidebar-wrap .document-fields__sidebar {
-    padding-bottom: calc(var(--spacer-5) * 2);
+    padding-bottom: calc(2 * var(--spacing-field));
     overflow: visible;
   }
 
@@ -132,6 +135,7 @@
     padding-bottom: 0;
   }
 
+  /* stylelint-disable-next-line plugin/no-max-width-media-query -- TODO: pre-existing; migrate to a mobile-first min-width query */
   @media (max-width: 1024px) {
     .document-fields {
       display: block;
@@ -150,7 +154,7 @@
     }
 
     .document-fields--has-sidebar .document-fields__fields > .tabs-field {
-      margin-right: calc(var(--gutter-h) * -1);
+      margin-inline-end: calc(var(--gutter-h) * -1 * var(--field-border-bleed, 1));
     }
 
     .document-fields__main {
@@ -181,6 +185,7 @@
     }
   }
 
+  /* stylelint-disable-next-line plugin/no-max-width-media-query -- TODO: pre-existing; migrate to a mobile-first min-width query */
   @media (max-width: 768px) {
     .document-fields__sidebar-wrap {
       min-width: initial;
@@ -208,7 +213,7 @@
     }
 
     .document-fields--has-sidebar .document-fields__fields > .tabs-field {
-      margin-right: calc(var(--gutter-h) * -1);
+      margin-inline-end: calc(var(--gutter-h) * -1 * var(--field-border-bleed, 1));
     }
 
     .document-fields {
@@ -239,6 +244,7 @@
     }
 
     .document-fields__sidebar {
+      padding-top: var(--gutter-h);
       padding-bottom: calc(var(--spacer-5) * 2);
       overflow: visible;
     }
@@ -253,5 +259,12 @@
 
   .drawer .document-fields__edit {
     padding: var(--gutter-h);
+  }
+
+  /* In a drawer the main and sidebar fields stack without the page's vertical
+     divider, so add a top border to the sidebar fields to separate them from
+     the main fields above. */
+  .drawer .document-fields__sidebar-wrap {
+    border-top: var(--stroke-width-small) solid var(--color-border);
   }
 }

@@ -38,6 +38,7 @@ import { getPreferences } from '../../utilities/upsertPreferences.js'
 import { NotFoundView } from '../NotFound/index.js'
 import { UnauthorizedViewWithGutter } from '../Unauthorized/index.js'
 import { getDocumentView } from './getDocumentView.js'
+import { recordRecentlyViewed } from './recordRecentlyViewed.js'
 import { renderDocumentSlots } from './renderDocumentSlots.js'
 
 export { getDocumentView } from './getDocumentView.js'
@@ -68,6 +69,7 @@ export const renderDocument = async ({
   redirectAfterDuplicate,
   redirectAfterRestore,
   searchParams,
+  user: userWithReadAccess,
   versions,
   viewType,
 }: {
@@ -211,6 +213,13 @@ export const renderDocument = async ({
 
   const operation = (collectionSlug && idFromArgs) || globalSlug ? 'update' : 'create'
 
+  // Record the document as recently viewed (collections only, never on the create route or for
+  // trashed docs). Runs concurrently with the work below and never throws.
+  const recentlyViewedPromise =
+    collectionSlug && idFromArgs && doc && !isTrashedDoc
+      ? recordRecentlyViewed({ id: idFromArgs, collectionSlug, req })
+      : undefined
+
   const [
     { hasPublishedDoc, mostRecentVersionIsAutosaved, unpublishedVersionCount, versionCount },
     { state: formState },
@@ -241,6 +250,7 @@ export const renderDocument = async ({
       req,
       schemaPath: collectionSlug || globalSlug,
       skipValidation: true,
+      user: userWithReadAccess,
     }),
     getHasScheduledPublish({
       id: idFromArgs,
@@ -248,9 +258,10 @@ export const renderDocument = async ({
       globalConfig,
       hasPublishPermission,
       payload,
-      user,
     }),
   ])
+
+  await recentlyViewedPromise
 
   const documentViewServerProps: DocumentViewServerPropsOnly = {
     doc,
@@ -264,7 +275,7 @@ export const renderDocument = async ({
     routeSegments: segments,
     searchParams,
     server: req.server,
-    user,
+    user: userWithReadAccess,
     versions,
   }
 
@@ -351,7 +362,9 @@ export const renderDocument = async ({
       draft: true,
       fallbackLocale: false,
       locale: locale?.code,
-      req,
+      overrideAccess: false,
+      // Navigation renders concurrently and must not join this create transaction.
+      req: req.transactionID ? req : isolateObjectProperty(req, 'transactionID'),
       user,
     })
 
@@ -372,14 +385,16 @@ export const renderDocument = async ({
     }
   }
 
-  const documentSlots = renderDocumentSlots({
+  const documentSlots = await renderDocumentSlots({
     id,
     collectionConfig,
+    doc,
     globalConfig,
     hasSavePermission,
     locale,
     permissions,
     req,
+    user: userWithReadAccess,
   })
 
   // Extract Description from documentSlots to pass to DocumentHeader
@@ -446,7 +461,9 @@ export const renderDocument = async ({
           breakpoints={livePreviewConfig?.breakpoints}
           isLivePreviewEnabled={isLivePreviewEnabled && operation !== 'create'}
           isLivePreviewing={Boolean(
-            entityPreferences?.value?.editViewType === 'live-preview' && livePreviewURL,
+            (entityPreferences?.value?.editViewType === undefined
+              ? livePreviewConfig?.openByDefault
+              : entityPreferences.value.editViewType === 'live-preview') && livePreviewURL,
           )}
           isPreviewEnabled={Boolean(isPreviewEnabled)}
           previewURL={previewURL}
@@ -460,6 +477,7 @@ export const renderDocument = async ({
               globalConfig={globalConfig}
               permissions={permissions}
               req={req}
+              user={userWithReadAccess}
             />
           )}
           <HydrateAuthProvider permissions={permissions} />
@@ -484,6 +502,14 @@ export async function DocumentView(props: AdminViewServerProps) {
   } catch (error) {
     if (error?.message === 'NEXT_REDIRECT') {
       throw error
+    }
+
+    // The TanStack adapter's `req.server.redirect()` throws `redirect:<url>` as a
+    // control-flow signal — the target is already recorded on `req.server` and
+    // honored upstream in `loadAdminPage`. It isn't a real error, so swallow it
+    // without logging, mirroring the `NEXT_REDIRECT` guard above.
+    if (error?.message?.startsWith('redirect:')) {
+      return
     }
 
     logError({ err: error, payload: props.initPageResult.req.payload })

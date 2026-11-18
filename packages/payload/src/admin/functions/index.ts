@@ -1,33 +1,32 @@
-import type { AcceptedLanguages } from '@payloadcms/translations'
-
-import type { ImportMap } from '../../bin/generateImportMap/index.js'
+import type { ImportMap } from '../../cli/commands/generateImportMap/generateImportMap.js'
 import type { Locale, SanitizedConfig } from '../../config/types.js'
 import type { PaginatedDocs } from '../../database/types.js'
-import type { Slugify } from '../../fields/baseFields/slug/index.js'
+import type { Slugify } from '../../fields/baseFields/slug/types.js'
 import type {
   CollectionSlug,
   ColumnPreference,
+  DefaultDocumentIDType,
   FieldPaths,
   GlobalSlug,
   SanitizedPermissions,
 } from '../../index.js'
 import type { PayloadRequest, Sort, Where } from '../../types/index.js'
 import type { ColumnsFromURL } from '../../utilities/transformColumnPreferences.js'
+import type { ComponentRenderer } from '../adapters/render.js'
 
-export type InitReqResult = {
+export type AdminContext = {
   cookies: Map<string, string>
-  // TODO: Remove in 4.0. Duplicative, already available in req.headers
-  headers: Headers
-  // TODO: Remove in 4.0. Duplicative, already available in req.i18n.language
-  languageCode: AcceptedLanguages
   locale?: Locale
   permissions: SanitizedPermissions
   req: PayloadRequest
+  /** The authenticated user after read access for client-facing consumers. */
+  user?: PayloadRequest['user']
 }
 
 export type DefaultServerFunctionArgs = {
   importMap: ImportMap
-} & Pick<InitReqResult, 'cookies' | 'locale' | 'permissions' | 'req'>
+  renderComponent?: ComponentRenderer
+} & Pick<AdminContext, 'cookies' | 'locale' | 'permissions' | 'req' | 'user'>
 
 export type ServerFunctionArgs = {
   args: Record<string, unknown>
@@ -36,6 +35,8 @@ export type ServerFunctionArgs = {
 
 export type ServerFunctionClientArgs = {
   args: Record<string, unknown>
+  /** The locale of the rendered page making this request. */
+  locale?: Locale['code']
   name: string
 }
 
@@ -132,5 +133,14 @@ export type BuildTableStateArgs = {
 export type SlugifyServerFunctionArgs = {
   collectionSlug?: CollectionSlug
   globalSlug?: GlobalSlug
+  /**
+   * Current doc ID, needed to exclude this doc from uniqueness checks.
+   * This ensures that this doc can reuse its own slug rather than bumping past itself when regenerating.
+   */
+  id?: DefaultDocumentIDType
+  /**
+   * Active admin locale, so a localized slug's fallback is deduped within the right locale.
+   */
+  locale?: Locale['code']
   path?: FieldPaths['path']
 } & Omit<Parameters<Slugify>[0], 'req'>

@@ -5,28 +5,27 @@
     --upload-media-size: 28.125rem;
     border: var(--stroke-width-small) solid transparent;
     position: relative;
-    font-family: var(--font-body);
     margin-block: var(--spacer-2);
     border-radius: 0;
 
     &:has([data-align='center']) {
       width: fit-content;
-      margin-left: auto;
-      margin-right: auto;
+      margin-inline-start: auto;
+      margin-inline-end: auto;
     }
 
     &:has([data-align='right']),
     &:has([data-align='end']) {
       width: fit-content;
-      margin-left: auto;
-      margin-right: 0;
+      margin-inline-start: auto;
+      margin-inline-end: 0;
     }
 
     &:has([data-align='left']),
     &:has([data-align='start']) {
       width: fit-content;
-      margin-left: 0;
-      margin-right: auto;
+      margin-inline-start: 0;
+      margin-inline-end: auto;
     }
 
     &:hover {
@@ -78,7 +77,7 @@
 
   .LexicalEditorTheme__upload__floater {
     position: absolute;
-    left: 50%;
+    inset-inline-start: 50%;
     bottom: calc(100% + var(--spacer-2));
     transform: translateX(-50%);
     display: flex;
@@ -97,8 +96,8 @@
     &::before {
       content: '';
       position: absolute;
-      left: 0;
-      right: 0;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
       top: 100%;
       height: var(--spacer-2);
     }
@@ -135,7 +134,6 @@
   }
 
   .LexicalEditorTheme__upload__filename {
-    font-family: var(--text-body-medium-font-family);
     font-size: var(--text-body-medium-font-size);
     font-weight: var(--text-body-medium-font-weight);
     line-height: var(--text-body-medium-line-height);

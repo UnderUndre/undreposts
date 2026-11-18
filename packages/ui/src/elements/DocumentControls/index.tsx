@@ -1,10 +1,10 @@
 'use client'
 import type {
-  ClientUser,
   Data,
   SanitizedCollectionConfig,
   SanitizedCollectionPermission,
   SanitizedGlobalPermission,
+  User,
 } from 'payload'
 
 import { getTranslation } from '@payloadcms/translations'
@@ -19,6 +19,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react
 import type { DocumentDrawerContextType } from '../DocumentDrawer/Provider.js'
 
 import { useFormInitializing, useFormProcessing } from '../../forms/Form/context.js'
+import { useElementHeightVariable } from '../../hooks/useElementHeightVariable.js'
 import { MoreIcon } from '../../icons/More/index.js'
 import { useConfig } from '../../providers/Config/index.js'
 import { useDocumentInfo } from '../../providers/DocumentInfo/index.js'
@@ -48,7 +49,7 @@ import './index.css'
 
 const baseClass = 'doc-controls'
 
-export const DocumentControls: React.FC<{
+type DocumentControlsProps = {
   readonly apiURL: string
   readonly BeforeDocumentControls?: React.ReactNode
   readonly BeforeDocumentMeta?: React.ReactNode
@@ -84,14 +85,16 @@ export const DocumentControls: React.FC<{
   readonly redirectAfterDuplicate?: boolean
   readonly redirectAfterRestore?: boolean
   readonly slug: SanitizedCollectionConfig['slug']
-  readonly user?: ClientUser
+  readonly user?: User
   /**
    * Controls how the document controls render.
    * - `default`: full controls bar (meta + actions), used on the edit page.
    * - `drawerHeaderActions`: only the action buttons, rendered in the document drawer header.
    */
   readonly variant?: 'default' | 'drawerHeaderActions'
-}> = (props) => {
+}
+
+export const DocumentControls: React.FC<DocumentControlsProps> = (props) => {
   const {
     id,
     slug,
@@ -157,7 +160,16 @@ export const DocumentControls: React.FC<{
   const processing = useFormProcessing()
   const initializing = useFormInitializing()
 
+  const rootRef = useRef<HTMLDivElement>(null)
   const i18nRef = useRef(i18n)
+
+  // Only the page-level controls bar feeds the sticky layout offsets. Drawer instances
+  // (variant="drawerHeaderActions") must not publish the shared var or they'd clobber it.
+  useElementHeightVariable({
+    cssVar: '--doc-controls-height',
+    isEnabled: variant === 'default',
+    ref: rootRef,
+  })
   i18nRef.current = i18n
 
   const updateRelativeTime = useCallback(() => {
@@ -198,9 +210,9 @@ export const DocumentControls: React.FC<{
 
   const showDotMenu = Boolean(
     !disableActions &&
-      (EditMenuItems ||
-        (collectionConfig && id && (hasCreatePermission || hasDeletePermission)) ||
-        (globalConfig && (globalHasDraftsEnabled || localization))),
+    (EditMenuItems ||
+      (collectionConfig && id && (hasCreatePermission || hasDeletePermission)) ||
+      (globalConfig && (globalHasDraftsEnabled || localization))),
   )
   const collectionAutosaveEnabled = hasAutosaveEnabled(collectionConfig)
   const globalAutosaveEnabled = hasAutosaveEnabled(globalConfig)
@@ -222,6 +234,7 @@ export const DocumentControls: React.FC<{
       className={[baseClass, variant !== 'default' && `${baseClass}--${variant}`]
         .filter(Boolean)
         .join(' ')}
+      ref={rootRef}
     >
       {variant === 'default' && (
         <div className={`${baseClass}__content`}>
@@ -366,9 +379,11 @@ export const DocumentControls: React.FC<{
             className={`${baseClass}__popup`}
             disabled={initializing || processing}
             horizontalAlign="right"
+            popupType="menu"
             renderButton={({ active, ...buttonProps }) => (
               <Button
                 {...buttonProps}
+                aria-label={`${t('general:moreOptions')}: ${t('general:document')}`}
                 buttonStyle="ghost"
                 className={`${baseClass}__popup-button`}
                 icon={<MoreIcon />}
@@ -376,7 +391,6 @@ export const DocumentControls: React.FC<{
                 size="medium"
               />
             )}
-            size="medium"
             verticalAlign="bottom"
           >
             <PopupList.ButtonGroup>

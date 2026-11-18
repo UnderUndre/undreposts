@@ -6,13 +6,14 @@ import { fileURLToPath } from 'url'
 
 import { login } from '../__helpers/e2e/auth/login.js'
 import {
-  ensureCompilationIsDone,
-  initPageConsoleErrorCatch,
   saveDocAndAssert,
   // throttleTest,
 } from '../__helpers/e2e/helpers.js'
+import { openNav } from '../__helpers/e2e/toggleNav.js'
 import { AdminUrlUtil } from '../__helpers/shared/adminUrlUtil.js'
 import { initPayloadE2ENoConfig } from '../__helpers/shared/initPayloadE2ENoConfig.js'
+import { ensureCompilationIsDone } from '../__setup/e2e/ensureCompilationIsDone.js'
+import { initPage } from '../__setup/e2e/initPage.js'
 import { TEST_TIMEOUT_LONG } from '../playwright.config.js'
 import { adminRoute } from './shared.js'
 
@@ -21,6 +22,16 @@ const dirname = path.dirname(filename)
 let context: BrowserContext
 
 test.describe('Admin Panel (Root)', () => {
+  // The tanstack-start adapter's file-based router currently mounts the admin
+  // under a fixed `/admin/*` route, so configs that move the admin to the
+  // site root (`admin: '/'`) cannot be served by `app-tanstack`. Skip the
+  // entire suite for tanstack-start until the router supports a configurable
+  // admin mount point.
+  test.skip(
+    process.env.PAYLOAD_FRAMEWORK === 'tanstack-start',
+    'tanstack-start does not yet support a custom admin route at the site root',
+  )
+
   let page: Page
   let url: AdminUrlUtil
 
@@ -33,17 +44,14 @@ test.describe('Admin Panel (Root)', () => {
     })
 
     context = await browser.newContext()
-    page = await context.newPage()
-    initPageConsoleErrorCatch(page)
-
-    await ensureCompilationIsDone({
+    ;({ page } = await initPage({
+      context,
       customRoutes: {
         admin: adminRoute,
       },
       noAutoLogin: true,
-      page,
       serverURL,
-    })
+    }))
 
     await login({ customRoutes: { admin: adminRoute }, page, serverURL })
 
@@ -133,6 +141,11 @@ test.describe('Admin Panel (Root)', () => {
     await expect(page.locator('#field-theme-auto')).toBeHidden()
   })
 
+  test('ignores the ?theme= param when config.admin.theme restricts the theme', async () => {
+    await page.goto(`${url.account}?theme=light`)
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  })
+
   test('should mount custom root views', async () => {
     await page.goto(`${url.admin}/custom-view`)
     await expect(page.locator('#custom-view')).toBeVisible()
@@ -142,7 +155,8 @@ test.describe('Admin Panel (Root)', () => {
     await page.goto(url.create)
     const textField = page.locator('#field-text')
     await textField.fill('updated')
-    await page.click('button[aria-label="Account"]')
+    await openNav(page)
+    await page.getByRole('button', { name: /^Account(?::|$)/ }).click()
     const profileLink = page.locator('a.user-menu__profile')
     await expect(profileLink).toBeVisible()
     await profileLink.click()

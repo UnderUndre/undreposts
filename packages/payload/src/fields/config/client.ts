@@ -3,6 +3,7 @@
 // Keep perfectionist/sort-switch-case disabled - it incorrectly messes up the ordering of the switch cases, causing it to break
 import type { ClientTranslationKeys, I18nClient, TFunction } from '@payloadcms/translations'
 
+import type { ImportMap } from '../../cli/commands/generateImportMap/generateImportMap.js'
 import type { LabelFunction } from '../../config/types.js'
 import type {
   AdminClient,
@@ -24,10 +25,10 @@ import type {
 } from '../../fields/config/types.js'
 import type { Payload } from '../../types/index.js'
 
-import { getFromImportMap } from '../../bin/generateImportMap/utilities/getFromImportMap.js'
+import { getFromImportMap } from '../../cli/commands/generateImportMap/utilities/getFromImportMap.js'
 import { MissingEditorProp } from '../../errors/MissingEditorProp.js'
 import { fieldAffectsData } from '../../fields/config/types.js'
-import { flattenTopLevelFields, type ImportMap } from '../../index.js'
+import { flattenTopLevelFields } from '../../utilities/flattenTopLevelFields.js'
 
 // Should not be used - ClientField should be used instead. This is why we don't export ClientField, we don't want people
 // to accidentally use it instead of ClientField and get confused
@@ -42,6 +43,7 @@ export type ServerOnlyFieldProperties =
   | 'graphQL'
   | 'jsonSchema'
   | 'label'
+  | 'slugify' // This is a `slug` only property — a function, cannot cross the RSC boundary
   | 'validate'
   | keyof Pick<FieldBase, 'access' | 'custom' | 'defaultValue' | 'hooks'>
 
@@ -63,6 +65,7 @@ const serverOnlyFieldProperties: Partial<ServerOnlyFieldProperties>[] = [
   'dbName', // can be a function
   'enumName', // can be a function
   'graphQL', // client does not need graphQL
+  'slugify', // `slug` field — a function, cannot cross the RSC boundary (server resolves it via `custom.slugify`)
   // the following props are handled separately (see below):
   // `label`
   // `fields`
@@ -197,7 +200,7 @@ export const createClientField = ({
           break
         }
 
-        clientField.admin = {} as AdminClient
+        clientField.admin = {}
 
         for (const adminKey in incomingField.admin) {
           if (serverOnlyFieldAdminProperties.includes(adminKey as any)) {
@@ -431,7 +434,7 @@ export const createClientField = ({
                 t: i18n.t,
               })
             } else if (key === 'admin') {
-              clientTab.admin = {} as AdminClient
+              clientTab.admin = {}
 
               for (const adminKey in tab.admin) {
                 if (serverOnlyFieldAdminProperties.includes(adminKey as any)) {

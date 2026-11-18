@@ -27,16 +27,32 @@ export const LogoutClient: React.FC<{
   adminRoute: string
   inactivity?: boolean
   redirect: string
+  /**
+   * The server-resolved user for the logout request. This is the source of
+   * truth for *who* to log out: the client `useAuth().user` is unreliable here
+   * because the admin `AuthProvider` clears any user that isn't in the admin
+   * user collection (a non-admin/public user resolves to `null` via `/me`).
+   * On adapters that mount this view's tree after the layout's auth effects
+   * (e.g. TanStack Start, where the RSC payload streams in after hydration),
+   * that clear races ahead of this component and `useAuth().user` is already
+   * `null` at mount — so relying on it would skip the logout request entirely.
+   */
+  user?: { collection?: string; id?: number | string } | null
 }> = (props) => {
-  const { adminRoute, inactivity, redirect } = props
+  const { adminRoute, inactivity, redirect, user: serverUser } = props
 
-  const { logOut, user } = useAuth()
+  const { logOut, user: clientUser } = useAuth()
+
+  // Prefer the client user when present (covers token refresh / inactivity),
+  // but fall back to the server-resolved user so the logout still fires when
+  // the client auth state has already been cleared (see `user` prop above).
+  const logoutUser = clientUser ?? serverUser
 
   const { startRouteTransition } = useRouteTransition()
 
   const isLoggedIn = React.useMemo(() => {
-    return Boolean(user?.id)
-  }, [user?.id])
+    return Boolean(logoutUser?.id)
+  }, [logoutUser?.id])
 
   const navigatingToLoginRef = React.useRef(false)
 
@@ -59,7 +75,7 @@ export const LogoutClient: React.FC<{
       navigatingToLoginRef.current = true
       await logOut()
       toast(t('authentication:loggedOutSuccessfully'))
-      startRouteTransition(() => router.push(loginRoute))
+      void startRouteTransition(() => router.push(loginRoute))
       return
     }
   }, [logOut, loginRoute, router, startRouteTransition, t])
@@ -69,7 +85,7 @@ export const LogoutClient: React.FC<{
       void handleLogOut()
     } else if (!inactivity && !navigatingToLoginRef.current) {
       navigatingToLoginRef.current = true
-      startRouteTransition(() => router.push(loginRoute))
+      void startRouteTransition(() => router.push(loginRoute))
     }
   }, [handleLogOut, isLoggedIn, loginRoute, router, startRouteTransition, inactivity])
 

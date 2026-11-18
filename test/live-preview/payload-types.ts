@@ -62,16 +62,16 @@ export type SupportedTimezones =
   | 'Pacific/Fiji';
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_A6D73F5A".
+ * via the `definition` "LexicalNodes_265E6A5E".
  */
-export type LexicalNodes_A6D73F5A =
+export type LexicalNodes_265E6A5E =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_A6D73F5A>
+  | SerializedParagraphNode<LexicalNodes_265E6A5E>
   | SerializedHorizontalRuleNode
   | SerializedUploadNode<'media'>
-  | SerializedQuoteNode<LexicalNodes_A6D73F5A>
+  | SerializedQuoteNode<LexicalNodes_265E6A5E>
   | SerializedRelationshipNode<
       | 'users'
       | 'pages'
@@ -81,33 +81,34 @@ export type LexicalNodes_A6D73F5A =
       | 'tenants'
       | 'categories'
       | 'collection-level-config'
+      | 'open-by-default'
       | 'static-url'
       | 'custom-live-preview'
       | 'conditional-url'
-      | 'payload-mcp-api-keys'
+      | 'forbidden-url'
       | 'payload-kv'
       | 'payload-locked-documents'
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedAutoLinkNode<LexicalNodes_A6D73F5A, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_A6D73F5A, LexicalLinkFields>
-  | SerializedListNode<LexicalNodes_A6D73F5A>
-  | SerializedListItemNode<LexicalNodes_A6D73F5A>
-  | SerializedHeadingNode<LexicalNodes_A6D73F5A>;
+  | SerializedAutoLinkNode<LexicalNodes_265E6A5E, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_265E6A5E, LexicalLinkFields>
+  | SerializedListNode<LexicalNodes_265E6A5E>
+  | SerializedListItemNode<LexicalNodes_265E6A5E>
+  | SerializedHeadingNode<LexicalNodes_265E6A5E>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_850D1707".
+ * via the `definition` "LexicalNodes_50E80D16".
  */
-export type LexicalNodes_850D1707 =
+export type LexicalNodes_50E80D16 =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_850D1707>
+  | SerializedParagraphNode<LexicalNodes_50E80D16>
   | SerializedBlockNode<MediaBlock_1EDC4A89>
   | SerializedHorizontalRuleNode
   | SerializedUploadNode<'media'>
-  | SerializedQuoteNode<LexicalNodes_850D1707>
+  | SerializedQuoteNode<LexicalNodes_50E80D16>
   | SerializedRelationshipNode<
       | 'users'
       | 'pages'
@@ -117,37 +118,38 @@ export type LexicalNodes_850D1707 =
       | 'tenants'
       | 'categories'
       | 'collection-level-config'
+      | 'open-by-default'
       | 'static-url'
       | 'custom-live-preview'
       | 'conditional-url'
-      | 'payload-mcp-api-keys'
+      | 'forbidden-url'
       | 'payload-kv'
       | 'payload-locked-documents'
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedAutoLinkNode<LexicalNodes_850D1707, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_850D1707, LexicalLinkFields>
-  | SerializedListNode<LexicalNodes_850D1707>
-  | SerializedListItemNode<LexicalNodes_850D1707>
-  | SerializedHeadingNode<LexicalNodes_850D1707>;
+  | SerializedAutoLinkNode<LexicalNodes_50E80D16, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_50E80D16, LexicalLinkFields>
+  | SerializedListNode<LexicalNodes_50E80D16>
+  | SerializedListItemNode<LexicalNodes_50E80D16>
+  | SerializedHeadingNode<LexicalNodes_50E80D16>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_1A3BAFDD".
+ * via the `definition` "LexicalNodes_638B30E7".
  */
-export type LexicalNodes_1A3BAFDD =
+export type LexicalNodes_638B30E7 =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_1A3BAFDD>
+  | SerializedParagraphNode<LexicalNodes_638B30E7>
   | SerializedBlockNode<MyBlock>
-  | SerializedHeadingNode<LexicalNodes_1A3BAFDD>
+  | SerializedHeadingNode<LexicalNodes_638B30E7>
   | SerializedUploadNode<'media', LexicalUploadFields_1AB4670B>
-  | SerializedQuoteNode<LexicalNodes_1A3BAFDD>
-  | SerializedListNode<LexicalNodes_1A3BAFDD>
-  | SerializedListItemNode<LexicalNodes_1A3BAFDD>
-  | SerializedAutoLinkNode<LexicalNodes_1A3BAFDD, LexicalLinkFields_0A7E9EC0>
-  | SerializedLinkNode<LexicalNodes_1A3BAFDD, LexicalLinkFields_0A7E9EC0>
+  | SerializedQuoteNode<LexicalNodes_638B30E7>
+  | SerializedListNode<LexicalNodes_638B30E7>
+  | SerializedListItemNode<LexicalNodes_638B30E7>
+  | SerializedAutoLinkNode<LexicalNodes_638B30E7, LexicalLinkFields_0A7E9EC0>
+  | SerializedLinkNode<LexicalNodes_638B30E7, LexicalLinkFields_0A7E9EC0>
   | SerializedRelationshipNode<
       | 'users'
       | 'pages'
@@ -157,10 +159,11 @@ export type LexicalNodes_1A3BAFDD =
       | 'tenants'
       | 'categories'
       | 'collection-level-config'
+      | 'open-by-default'
       | 'static-url'
       | 'custom-live-preview'
       | 'conditional-url'
-      | 'payload-mcp-api-keys'
+      | 'forbidden-url'
       | 'payload-kv'
       | 'payload-locked-documents'
       | 'payload-preferences'
@@ -184,10 +187,11 @@ export interface Config {
     categories: Category;
     media: Media;
     'collection-level-config': CollectionLevelConfig;
+    'open-by-default': OpenByDefault;
     'static-url': StaticUrl;
     'custom-live-preview': CustomLivePreview;
     'conditional-url': ConditionalUrl;
-    'payload-mcp-api-keys': PayloadMcpApiKey;
+    'forbidden-url': ForbiddenUrl;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -204,10 +208,11 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'collection-level-config': CollectionLevelConfigSelect<false> | CollectionLevelConfigSelect<true>;
+    'open-by-default': OpenByDefaultSelect<false> | OpenByDefaultSelect<true>;
     'static-url': StaticUrlSelect<false> | StaticUrlSelect<true>;
     'custom-live-preview': CustomLivePreviewSelect<false> | CustomLivePreviewSelect<true>;
     'conditional-url': ConditionalUrlSelect<false> | ConditionalUrlSelect<true>;
-    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
+    'forbidden-url': ForbiddenUrlSelect<false> | ForbiddenUrlSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -228,6 +233,8 @@ export interface Config {
   locale: 'en' | 'es';
   widgets: {
     collections: CollectionsWidget;
+    'collection-query': CollectionQueryWidget;
+    activity: ActivityWidget;
   };
   user: User;
   jobs: {
@@ -272,6 +279,14 @@ export interface MediaBlock {
 export interface Media {
   id: string;
   alt: string;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -290,6 +305,14 @@ export interface Media {
  */
 export interface User {
   id: string;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -297,6 +320,7 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -322,7 +346,7 @@ export interface Page {
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'lowImpact';
-    richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+    richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
     media?: (string | null) | Media;
   };
   layout?: (Cta | Content | MediaBlock | Archive)[] | null;
@@ -332,8 +356,8 @@ export interface Page {
   testNumber?: number | null;
   localizedTitle?: string | null;
   relationToLocalized?: (string | null) | Post;
-  richTextLexical?: LexicalRichText<LexicalNodes_850D1707> | null;
-  richTextLexicalLocalized?: LexicalRichText<LexicalNodes_850D1707> | null;
+  richTextLexical?: LexicalRichText<LexicalNodes_50E80D16> | null;
+  richTextLexicalLocalized?: LexicalRichText<LexicalNodes_50E80D16> | null;
   relationshipAsUpload?: (string | null) | Media;
   relationshipMonoHasOne?: (string | null) | Post;
   relationshipMonoHasMany?: (string | Post)[] | null;
@@ -350,7 +374,7 @@ export interface Page {
   arrayOfRelationships?:
     | {
         uploadInArray?: (string | null) | Media;
-        richTextInArray?: LexicalRichText<LexicalNodes_1A3BAFDD> | null;
+        richTextInArray?: LexicalRichText<LexicalNodes_638B30E7> | null;
         relationshipInArrayMonoHasOne?: (string | null) | Post;
         relationshipInArrayMonoHasMany?: (string | Post)[] | null;
         relationshipInArrayPolyHasOne?: {
@@ -374,6 +398,14 @@ export interface Page {
     description?: string | null;
     image?: (string | null) | Media;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -385,6 +417,14 @@ export interface Tenant {
   id: string;
   title: string;
   clientURL: string;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -394,7 +434,7 @@ export interface Tenant {
  */
 export interface Cta {
   invertBackground?: boolean | null;
-  richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+  richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
   links?:
     | {
         link: {
@@ -434,7 +474,7 @@ export interface Post {
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'lowImpact';
-    richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+    richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
     media?: (string | null) | Media;
   };
   layout?: (Cta | Content | MediaBlock | Archive)[] | null;
@@ -445,6 +485,14 @@ export interface Post {
     description?: string | null;
     image?: (string | null) | Media;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -458,7 +506,7 @@ export interface Content {
   columns?:
     | {
         size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
-        richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+        richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
         enableLink?: boolean | null;
         link?: {
           type?: ('reference' | 'custom') | null;
@@ -491,7 +539,7 @@ export interface Content {
  * via the `definition` "Archive".
  */
 export interface Archive {
-  introContent?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+  introContent?: LexicalRichText<LexicalNodes_265E6A5E> | null;
   populateBy?: ('collection' | 'selection') | null;
   relationTo?: 'posts' | null;
   categories?: (string | Category)[] | null;
@@ -526,6 +574,14 @@ export interface Archive {
 export interface Category {
   id: string;
   title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -542,7 +598,7 @@ export interface Ssr {
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'lowImpact';
-    richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+    richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
     media?: (string | null) | Media;
   };
   layout?: (Cta | Content | MediaBlock | Archive)[] | null;
@@ -551,6 +607,14 @@ export interface Ssr {
     description?: string | null;
     image?: (string | null) | Media;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -567,7 +631,7 @@ export interface SsrAutosave {
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'lowImpact';
-    richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+    richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
     media?: (string | null) | Media;
   };
   layout?: (Cta | Content | MediaBlock | Archive)[] | null;
@@ -576,6 +640,14 @@ export interface SsrAutosave {
     description?: string | null;
     image?: (string | null) | Media;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -589,6 +661,34 @@ export interface SsrAutosave {
 export interface CollectionLevelConfig {
   id: string;
   title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Live Preview opens automatically on first visit via `openByDefault`.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "open-by-default".
+ */
+export interface OpenByDefault {
+  id: string;
+  title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -599,6 +699,14 @@ export interface CollectionLevelConfig {
 export interface StaticUrl {
   id: string;
   title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -613,7 +721,7 @@ export interface CustomLivePreview {
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'lowImpact';
-    richText?: LexicalRichText<LexicalNodes_A6D73F5A> | null;
+    richText?: LexicalRichText<LexicalNodes_265E6A5E> | null;
     media?: (string | null) | Media;
   };
   layout?: (Cta | Content | MediaBlock | Archive)[] | null;
@@ -622,6 +730,14 @@ export interface CustomLivePreview {
     description?: string | null;
     image?: (string | null) | Media;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -633,31 +749,31 @@ export interface ConditionalUrl {
   id: string;
   title?: string | null;
   enabled?: boolean | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys".
+ * via the `definition` "forbidden-url".
  */
-export interface PayloadMcpApiKey {
+export interface ForbiddenUrl {
   id: string;
-  apiKey: string;
-  apiKeyIndex: string;
-  access?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  label?: string | null;
-  description?: string | null;
-  lastUsed?: string | null;
-  user: string | User;
-  overrideAccess?: boolean | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -722,6 +838,10 @@ export interface PayloadLockedDocument {
         value: string | CollectionLevelConfig;
       } | null)
     | ({
+        relationTo: 'open-by-default';
+        value: string | OpenByDefault;
+      } | null)
+    | ({
         relationTo: 'static-url';
         value: string | StaticUrl;
       } | null)
@@ -734,8 +854,8 @@ export interface PayloadLockedDocument {
         value: string | ConditionalUrl;
       } | null)
     | ({
-        relationTo: 'payload-mcp-api-keys';
-        value: string | PayloadMcpApiKey;
+        relationTo: 'forbidden-url';
+        value: string | ForbiddenUrl;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -784,6 +904,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -791,6 +913,7 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  resetPasswordRequestedAt?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -924,6 +1047,8 @@ export interface PagesSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1026,6 +1151,8 @@ export interface PostsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1127,6 +1254,8 @@ export interface SsrSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1227,6 +1356,8 @@ export interface SsrAutosaveSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1238,6 +1369,8 @@ export interface SsrAutosaveSelect<T extends boolean = true> {
 export interface TenantsSelect<T extends boolean = true> {
   title?: T;
   clientURL?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1247,6 +1380,8 @@ export interface TenantsSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1256,6 +1391,8 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1274,6 +1411,19 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CollectionLevelConfigSelect<T extends boolean = true> {
   title?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "open-by-default_select".
+ */
+export interface OpenByDefaultSelect<T extends boolean = true> {
+  title?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1283,6 +1433,8 @@ export interface CollectionLevelConfigSelect<T extends boolean = true> {
  */
 export interface StaticUrlSelect<T extends boolean = true> {
   title?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1383,6 +1535,8 @@ export interface CustomLivePreviewSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1393,22 +1547,18 @@ export interface CustomLivePreviewSelect<T extends boolean = true> {
 export interface ConditionalUrlSelect<T extends boolean = true> {
   title?: T;
   enabled?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys_select".
+ * via the `definition` "forbidden-url_select".
  */
-export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
-  apiKey?: T;
-  apiKeyIndex?: T;
-  access?: T;
-  label?: T;
-  description?: T;
-  lastUsed?: T;
-  user?: T;
-  overrideAccess?: T;
+export interface ForbiddenUrlSelect<T extends boolean = true> {
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1482,6 +1632,14 @@ export interface Header {
         id?: string | null;
       }[]
     | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1515,6 +1673,14 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1538,6 +1704,8 @@ export interface HeaderSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1562,6 +1730,8 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1575,6 +1745,70 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collection-query_widget".
+ */
+export interface CollectionQueryWidget {
+  data?: {
+    title?: string | null;
+    relatedCollection:
+      | 'users'
+      | 'pages'
+      | 'posts'
+      | 'ssr'
+      | 'ssr-autosave'
+      | 'tenants'
+      | 'categories'
+      | 'media'
+      | 'collection-level-config'
+      | 'open-by-default'
+      | 'static-url'
+      | 'custom-live-preview'
+      | 'conditional-url'
+      | 'forbidden-url';
+    where?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    sortField?: string | null;
+    sortDirection?: ('asc' | 'desc') | null;
+    limit?: number | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity_widget".
+ */
+export interface ActivityWidget {
+  data?: {
+    excludedCollections?:
+      | (
+          | 'users'
+          | 'pages'
+          | 'posts'
+          | 'ssr'
+          | 'ssr-autosave'
+          | 'tenants'
+          | 'categories'
+          | 'media'
+          | 'collection-level-config'
+          | 'open-by-default'
+          | 'static-url'
+          | 'custom-live-preview'
+          | 'conditional-url'
+          | 'forbidden-url'
+        )[]
+      | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }
 /**
  * Multiple blocks resolve to the `MediaBlock` interface with different fields, so a content hash is appended to keep the generated types stable and unambiguous. Set a unique `interfaceName` on the block to choose the name yourself. See https://payloadcms.com/docs/typescript/generating-types#block-interface-name-collisions
@@ -1698,7 +1932,7 @@ export type SerializedUploadNode<TSlugs extends keyof Config['collections'], TFi
 } & {
   [TSlug in TSlugs]: {
     relationTo: TSlug;
-    value: number | string | Config['collections'][TSlug];
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
   };
 }[TSlugs];
 
@@ -1713,7 +1947,7 @@ export type SerializedRelationshipNode<TSlugs extends keyof Config['collections'
 } & {
   [TSlug in TSlugs]: {
     relationTo: TSlug;
-    value: number | string | Config['collections'][TSlug];
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
   };
 }[TSlugs];
 

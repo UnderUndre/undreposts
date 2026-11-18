@@ -8,14 +8,11 @@ import { fileURLToPath } from 'url'
 import type { PayloadTestSDK } from '../__helpers/shared/sdk/index.js'
 import type { Config } from './payload-types.js'
 
-import {
-  ensureCompilationIsDone,
-  initPageConsoleErrorCatch,
-  saveDocAndAssert,
-} from '../__helpers/e2e/helpers.js'
+import { saveDocAndAssert } from '../__helpers/e2e/helpers.js'
 import { selectInput } from '../__helpers/e2e/selectInput.js'
 import { AdminUrlUtil } from '../__helpers/shared/adminUrlUtil.js'
 import { initPayloadE2ENoConfig } from '../__helpers/shared/initPayloadE2ENoConfig.js'
+import { initPage } from '../__setup/e2e/initPage.js'
 import { POLL_TOPASS_TIMEOUT, TEST_TIMEOUT_LONG } from '../playwright.config.js'
 import { documentsSlug, formsSlug, formSubmissionsSlug, mediaSlug } from './shared.js'
 
@@ -46,10 +43,7 @@ test.describe('Form Builder Plugin', () => {
     payload = payloadFromInit
 
     const context = await browser.newContext()
-    page = await context.newPage()
-    initPageConsoleErrorCatch(page)
-
-    await ensureCompilationIsDone({ page, serverURL })
+    ;({ page } = await initPage({ context, serverURL }))
   })
 
   test.describe('Forms collection', () => {
@@ -102,12 +96,14 @@ test.describe('Form Builder Plugin', () => {
         collection: formsSlug,
         limit: 1,
         where: { title: { equals: 'Contact Form' } },
+        overrideAccess: true,
       })
       const { docs: submissions } = await payload.find({
         collection: formSubmissionsSlug,
         limit: 1,
         sort: 'createdAt',
         where: { form: { equals: contactForms[0]!.id } },
+        overrideAccess: true,
       })
       const seededSubmission = submissions[0]!
 
@@ -130,6 +126,7 @@ test.describe('Form Builder Plugin', () => {
             contains: 'Contact',
           },
         },
+        overrideAccess: true,
       })
 
       const createdSubmission = await payload.create({
@@ -147,6 +144,7 @@ test.describe('Form Builder Plugin', () => {
             },
           ],
         },
+        overrideAccess: true,
       })
 
       await page.goto(submissionsUrl.edit(createdSubmission.id))
@@ -160,9 +158,9 @@ test.describe('Form Builder Plugin', () => {
 
       const formSelect = page.locator('#field-form')
       await selectInput({
-        page,
         multiSelect: false,
         option: 'Contact Form',
+        page,
         selectLocator: formSelect,
         selectType: 'relationship',
       })
@@ -187,6 +185,7 @@ test.describe('Form Builder Plugin', () => {
             contains: 'Booking',
           },
         },
+        overrideAccess: true,
       })
 
       const createdSubmission = await payload.create({
@@ -208,6 +207,7 @@ test.describe('Form Builder Plugin', () => {
             },
           ],
         },
+        overrideAccess: true,
       })
 
       await page.goto(submissionsUrl.edit(createdSubmission.id))
@@ -230,6 +230,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const uploadForm = docs[0]
@@ -262,6 +263,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: result.doc.id } },
+        overrideAccess: true,
       })
       const avatarUpload = submissionDocs[0]?.submissionUploads?.[0]
       // value is now hasMany array; at depth=0 each item is { relationTo, value: rawId }
@@ -276,13 +278,18 @@ test.describe('Form Builder Plugin', () => {
       const { docs: mediaDocs } = await payload.find({
         collection: mediaSlug,
         where: { id: { equals: mediaId } },
+        overrideAccess: true,
       })
       expect(mediaDocs[0]).toBeDefined()
       expect(mediaDocs[0]?.filename).toContain('test-avatar')
 
       // Cleanup
-      await payload.delete({ id: String(result.doc.id), collection: formSubmissionsSlug })
-      await payload.delete({ id: mediaId, collection: mediaSlug })
+      await payload.delete({
+        id: String(result.doc.id),
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: mediaId, collection: mediaSlug, overrideAccess: true })
     })
 
     test('validates required upload field via REST API', async ({ request }) => {
@@ -293,6 +300,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const uploadForm = docs[0]
@@ -323,6 +331,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Image Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const imageForm = docs[0]
@@ -369,6 +378,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Image Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const imageForm = docs[0]
@@ -399,6 +409,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: result.doc.id } },
+        overrideAccess: true,
       })
       const imageUpload = submissionDocs[0]?.submissionUploads?.[0]
       // value is now hasMany array; at depth=0 each item is { relationTo, value: rawId }
@@ -410,8 +421,12 @@ test.describe('Form Builder Plugin', () => {
       expect(imageRelation?.relationTo).toBe(mediaSlug)
 
       // Cleanup
-      await payload.delete({ id: String(result.doc.id), collection: formSubmissionsSlug })
-      await payload.delete({ id: imageMediaId, collection: mediaSlug })
+      await payload.delete({
+        id: String(result.doc.id),
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: imageMediaId, collection: mediaSlug, overrideAccess: true })
     })
 
     test('supports pre-uploaded file IDs for backwards compatibility via REST API', async ({
@@ -424,6 +439,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const uploadForm = docs[0]
@@ -465,6 +481,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: result.doc.id } },
+        overrideAccess: true,
       })
       const avatarUpload = submissionDocs[0]?.submissionUploads?.[0]
       // value is now hasMany array; at depth=0 each item is { relationTo, value: rawId }
@@ -475,8 +492,16 @@ test.describe('Form Builder Plugin', () => {
       expect(String(avatarRelation?.value)).toBe(String(preUploadedFileId))
 
       // Cleanup
-      await payload.delete({ id: String(result.doc.id), collection: formSubmissionsSlug })
-      await payload.delete({ id: String(preUploadedFileId), collection: mediaSlug })
+      await payload.delete({
+        id: String(result.doc.id),
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({
+        id: String(preUploadedFileId),
+        collection: mediaSlug,
+        overrideAccess: true,
+      })
     })
 
     test('can submit form with mixed fields (text + upload) via REST API', async ({ request }) => {
@@ -487,6 +512,7 @@ test.describe('Form Builder Plugin', () => {
             equals: 'Upload Form',
           },
         },
+        overrideAccess: true,
       })
 
       const uploadForm = docs[0]
@@ -523,6 +549,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: result.doc.id } },
+        overrideAccess: true,
       })
       const avatarUpload = submissionDocs[0]?.submissionUploads?.[0]
       // value is now hasMany array; at depth=0 each item is { relationTo, value: rawId }
@@ -534,8 +561,12 @@ test.describe('Form Builder Plugin', () => {
       expect(avatarRelation?.relationTo).toBe(mediaSlug)
 
       // Cleanup
-      await payload.delete({ id: String(result.doc.id), collection: formSubmissionsSlug })
-      await payload.delete({ id: avatarMediaId, collection: mediaSlug })
+      await payload.delete({
+        id: String(result.doc.id),
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: avatarMediaId, collection: mediaSlug, overrideAccess: true })
     })
 
     test('can submit multi-file upload form via REST API and stores one entry per field', async ({
@@ -544,6 +575,7 @@ test.describe('Form Builder Plugin', () => {
       const { docs } = await payload.find({
         collection: 'forms',
         where: { title: { equals: 'Multi-File Upload Form' } },
+        overrideAccess: true,
       })
 
       const multiFileForm = docs[0]!
@@ -574,6 +606,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: result.doc.id } },
+        overrideAccess: true,
       })
 
       const submissionUploads = submissionDocs[0]?.submissionUploads
@@ -596,9 +629,21 @@ test.describe('Form Builder Plugin', () => {
       expect(docItems[0]?.relationTo).toBe(documentsSlug)
 
       // Cleanup
-      await payload.delete({ id: String(result.doc.id), collection: formSubmissionsSlug })
-      await payload.delete({ id: photosItems[0]!.value, collection: mediaSlug })
-      await payload.delete({ id: docItems[0]!.value, collection: documentsSlug })
+      await payload.delete({
+        id: String(result.doc.id),
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({
+        id: photosItems[0]!.value,
+        collection: mediaSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({
+        id: docItems[0]!.value,
+        collection: documentsSlug,
+        overrideAccess: true,
+      })
     })
   })
 
@@ -612,14 +657,17 @@ test.describe('Form Builder Plugin', () => {
       const { docs: uploadForms } = await payload.find({
         collection: formsSlug,
         where: { title: { equals: 'Upload Form' } },
+        overrideAccess: true,
       })
       const { docs: imageForms } = await payload.find({
         collection: formsSlug,
         where: { title: { equals: 'Image Upload Form' } },
+        overrideAccess: true,
       })
       const { docs: multiFileForms } = await payload.find({
         collection: formsSlug,
         where: { title: { equals: 'Multi-File Upload Form' } },
+        overrideAccess: true,
       })
       uploadFormId = uploadForms[0]!.id
       imageFormId = imageForms[0]!.id
@@ -658,8 +706,12 @@ test.describe('Form Builder Plugin', () => {
 
       expect(submissionId).toBeTruthy()
       expect(mediaId).toBeTruthy()
-      await payload.delete({ id: submissionId!, collection: formSubmissionsSlug })
-      await payload.delete({ id: mediaId!, collection: mediaSlug })
+      await payload.delete({
+        id: submissionId!,
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: mediaId!, collection: mediaSlug, overrideAccess: true })
     })
 
     test('Upload Form: submission is visible in admin with submissionUploads image', async () => {
@@ -693,8 +745,12 @@ test.describe('Form Builder Plugin', () => {
       })
 
       // Cleanup
-      await payload.delete({ id: submissionId!, collection: formSubmissionsSlug })
-      await payload.delete({ id: mediaId!, collection: mediaSlug })
+      await payload.delete({
+        id: submissionId!,
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: mediaId!, collection: mediaSlug, overrideAccess: true })
     })
 
     test('Image Upload Form: shows MIME type error when uploading PDF', async () => {
@@ -735,8 +791,12 @@ test.describe('Form Builder Plugin', () => {
 
       expect(submissionId).toBeTruthy()
       expect(mediaId).toBeTruthy()
-      await payload.delete({ id: submissionId!, collection: formSubmissionsSlug })
-      await payload.delete({ id: mediaId!, collection: mediaSlug })
+      await payload.delete({
+        id: submissionId!,
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
+      await payload.delete({ id: mediaId!, collection: mediaSlug, overrideAccess: true })
     })
 
     test('Multi-File Upload Form: submits two images + one document and shows both collections in result', async () => {
@@ -772,6 +832,7 @@ test.describe('Form Builder Plugin', () => {
         depth: 0,
         limit: 1,
         where: { id: { equals: submissionId! } },
+        overrideAccess: true,
       })
 
       const uploadedIdsByCollection = new Map<string, string[]>()
@@ -784,11 +845,19 @@ test.describe('Form Builder Plugin', () => {
         }
       }
 
-      await payload.delete({ id: submissionId!, collection: formSubmissionsSlug })
+      await payload.delete({
+        id: submissionId!,
+        collection: formSubmissionsSlug,
+        overrideAccess: true,
+      })
 
       for (const [collection, ids] of uploadedIdsByCollection.entries()) {
         for (const id of ids) {
-          await payload.delete({ id, collection: collection as 'documents' | 'media' })
+          await payload.delete({
+            id,
+            collection: collection as 'documents' | 'media',
+            overrideAccess: true,
+          })
         }
       }
     })

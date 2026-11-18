@@ -16,11 +16,10 @@ import type { Config, LexicalField } from '../../../../payload-types.js'
 
 import {
   closeAllToasts,
-  ensureCompilationIsDone,
-  initPageConsoleErrorCatch,
   saveDocAndAssert,
   saveDocHotkeyAndAssert,
   waitForFormReady,
+  waitForLexicalReady,
 } from '../../../../../__helpers/e2e/helpers.js'
 import { goToFirstCell } from '../../../../../__helpers/e2e/navigateToDoc.js'
 import { getSelectMenu } from '../../../../../__helpers/e2e/selectInput.js'
@@ -28,6 +27,7 @@ import { AdminUrlUtil } from '../../../../../__helpers/shared/adminUrlUtil.js'
 import { reInitializeDB } from '../../../../../__helpers/shared/clearAndSeed/reInitializeDB.js'
 import { initPayloadE2ENoConfig } from '../../../../../__helpers/shared/initPayloadE2ENoConfig.js'
 import { RESTClient } from '../../../../../__helpers/shared/rest.js'
+import { initPage } from '../../../../../__setup/e2e/initPage.js'
 import { POLL_TOPASS_TIMEOUT, TEST_TIMEOUT_LONG } from '../../../../../playwright.config.js'
 import { lexicalCustomCellSlug, lexicalFieldsSlug, richTextFieldsSlug } from '../../../../slugs.js'
 import { lexicalDocData } from '../../data.js'
@@ -69,21 +69,18 @@ async function navigateToLexicalFields(
     await expect(richTextField).toBeVisible()
     // Wait until there at least 10 blocks visible in that richtext field - thus wait for it to be fully loaded
     await expect(richTextField.locator('.LexicalEditorTheme__block')).toHaveCount(10)
+    // Wait for the editor to be fully interactive (React hydration complete + Lexical initialized)
+    await waitForLexicalReady(richTextField)
   }
 }
 
 describe('lexicalMain', () => {
   beforeAll(async ({ browser }, testInfo) => {
     testInfo.setTimeout(TEST_TIMEOUT_LONG)
-    process.env.SEED_IN_CONFIG_ONINIT = 'false' // Makes it so the payload config onInit seed is not run. Otherwise, the seed would be run unnecessarily twice for the initial test run - once for beforeEach and once for onInit
     ;({ payload, serverURL } = await initPayloadE2ENoConfig<Config>({ dirname }))
 
     context = await browser.newContext()
-    page = await context.newPage()
-
-    initPageConsoleErrorCatch(page)
-
-    await ensureCompilationIsDone({ page, serverURL })
+    ;({ page } = await initPage({ context, serverURL }))
   })
   beforeEach(async () => {
     /*await throttleTest({
@@ -93,8 +90,6 @@ describe('lexicalMain', () => {
     })*/
     await reInitializeDB({
       serverURL,
-      snapshotKey: 'lexicalTest',
-      uploadsDir: [path.resolve(dirname, './collections/Upload/uploads')],
     })
 
     if (client) {
@@ -317,7 +312,7 @@ describe('lexicalMain', () => {
     await expect(richTextField).toBeVisible()
     await richTextField.click() // Use click, because focus does not work
     await page.keyboard.type('some text')
-    const spanInEditor = richTextField.locator('span').first()
+    const spanInEditor = richTextField.locator('[data-lexical-text="true"]').first()
     await expect(spanInEditor).toHaveText('some text')
     await saveDocAndAssert(page)
     await page.locator('#clear-lexical-lexicalSimple').click()
@@ -332,7 +327,7 @@ describe('lexicalMain', () => {
     await expect(richTextField).toBeVisible()
     await richTextField.click() // Use click, because focus does not work
     await page.keyboard.type('some text')
-    const spanInEditor = richTextField.locator('span').first()
+    const spanInEditor = richTextField.locator('[data-lexical-text="true"]').first()
     await expect(spanInEditor).toHaveText('some text')
     await saveDocAndAssert(page)
     await page.locator('#clear-lexical-lexicalSimple').click()
@@ -528,7 +523,7 @@ describe('lexicalMain', () => {
     await expect(richTextField.locator('.LexicalEditorTheme__block')).toHaveCount(10)
     await expect(page.locator('.shimmer-effect')).toHaveCount(0)
 
-    const lastParagraph = richTextField.locator('p').last()
+    const lastParagraph = richTextField.locator('.ContentEditable__root > p').last()
     await lastParagraph.scrollIntoViewIfNeeded()
     await expect(lastParagraph).toBeVisible()
 
@@ -561,11 +556,11 @@ describe('lexicalMain', () => {
     await expect(createUploadDrawer).toBeVisible()
     await wait(500)
 
-    const input = createUploadDrawer.locator('.file-field__upload input[type="file"]').first()
+    const input = createUploadDrawer.locator('.file-manager input[type="file"]').first()
     await expect(input).toBeAttached()
 
     await input.setInputFiles(path.resolve(dirname, './collections/Upload/payload.jpg'))
-    await expect(createUploadDrawer.locator('.file-field .file-field__filename')).toHaveValue(
+    await expect(createUploadDrawer.locator('#field-filemanager-filename')).toHaveValue(
       'payload.jpg',
     )
     await wait(500)
@@ -607,7 +602,7 @@ describe('lexicalMain', () => {
     await expect(richTextField.locator('.LexicalEditorTheme__block')).toHaveCount(10)
     await expect(page.locator('.shimmer-effect')).toHaveCount(0)
 
-    const lastParagraph = richTextField.locator('p').last()
+    const lastParagraph = richTextField.locator('.ContentEditable__root > p').last()
     await lastParagraph.scrollIntoViewIfNeeded()
     await expect(lastParagraph).toBeVisible()
 
@@ -714,7 +709,7 @@ describe('lexicalMain', () => {
       await navigateToLexicalFields(true, 'lexical-relationship-fields')
       const richTextField = page.locator('.rich-text-lexical').nth(0)
 
-      const lastParagraph = richTextField.locator('p').last()
+      const lastParagraph = richTextField.locator('.ContentEditable__root > p').last()
       await lastParagraph.scrollIntoViewIfNeeded()
       await expect(lastParagraph).toBeVisible()
 
@@ -740,7 +735,7 @@ describe('lexicalMain', () => {
       await navigateToLexicalFields(true, 'lexical-relationship-fields')
       const richTextField = page.locator('.rich-text-lexical').nth(0)
 
-      const lastParagraph = richTextField.locator('p').last()
+      const lastParagraph = richTextField.locator('.ContentEditable__root > p').last()
       await lastParagraph.scrollIntoViewIfNeeded()
       await expect(lastParagraph).toBeVisible()
 
@@ -1051,7 +1046,7 @@ describe('lexicalMain', () => {
     await expect(linkDrawer).toBeVisible()
     await wait(500)
 
-    const urlInput = linkDrawer.locator('#field-url').first()
+    const urlInput = linkDrawer.locator('input[name="url"]').first()
     // Click on the input to focus it
     await urlInput.click()
     // should be https:// value
@@ -1286,7 +1281,7 @@ describe('lexicalMain', () => {
     const linkDrawer = page.locator('dialog[id^=drawer_1_lexical-rich-text-link-]').first() // IDs starting with drawer_1_lexical-rich-text-link- (there's some other symbol after the underscore)
     await expect(linkDrawer).toBeVisible()
 
-    const urlInput = linkDrawer.locator('#field-url').first()
+    const urlInput = linkDrawer.locator('input[name="url"]').first()
 
     await expect(urlInput).toBeVisible()
   })
@@ -1301,9 +1296,8 @@ describe('lexicalMain', () => {
     await link.scrollIntoViewIfNeeded()
     await expect(link).toBeVisible()
     await link.click({
-      // eslint-disable-next-line playwright/no-force-option
-      force: true,
       button: 'left',
+      force: true,
     })
 
     await expect(page.locator('.link-edit')).toBeVisible()
@@ -1312,7 +1306,7 @@ describe('lexicalMain', () => {
     const linkDrawer = page.locator('dialog[id^=drawer_1_lexical-rich-text-link-]').first()
     await expect(linkDrawer).toBeVisible()
 
-    const blockTextInput = linkDrawer.locator('#field-blocks__0__text').first()
+    const blockTextInput = linkDrawer.locator('input[name="blocks.0.text"]').first()
 
     await expect(blockTextInput).toBeVisible()
     await expect(blockTextInput).toBeEditable()
@@ -1574,7 +1568,7 @@ describe('lexicalMain', () => {
     await richTextField.locator('.slash-menu-popup button').getByText('My Block').click()
 
     await expect(richTextField.locator('.LexicalEditorTheme__block')).toHaveCount(1)
-    await richTextField.locator('#field-someTextRequired').first().fill('test')
+    await richTextField.locator('input[name="someTextRequired"]').first().fill('test')
 
     await saveDocAndAssert(page)
 
@@ -1753,14 +1747,16 @@ describe('lexicalMain', () => {
       .first()
     await uploadNode.click()
     await expectInsideSelectedDecorator(uploadNode)
+    await page.keyboard.press('Backspace')
+    await expect(uploadNode).toBeHidden()
 
     const textNode = page.getByText('Upload Node:', { exact: true })
     await textNode.click()
     await expect(decoratorLocator).toBeHidden()
 
-    const closeTagInMultiSelect = page
-      .getByRole('button', { name: 'payload.jpg Edit payload.jpg' })
-      .getByLabel('Remove')
+    const closeTagInMultiSelect = page.getByRole('button', {
+      name: /^Remove payload\.jpg/,
+    })
     await closeTagInMultiSelect.click()
     await expect(decoratorLocator).toBeHidden()
 
@@ -1777,13 +1773,10 @@ describe('lexicalMain', () => {
 
     const labelInsideCollapsableBody2 = page.getByText('Text2')
     await labelInsideCollapsableBody2.click()
-    await expectInsideSelectedDecorator(labelInsideCollapsableBody2)
+    await expect(page.getByRole('textbox', { name: 'Text2', exact: true })).toBeFocused()
+    await expect(decoratorLocator).toBeHidden()
 
-    // TEST DELETE!
-    await page.keyboard.press('Backspace')
-    await expect(labelInsideCollapsableBody2).toBeHidden()
-
-    const monacoLabel = page.locator('label').getByText('Code')
+    const monacoLabel = page.locator('.field-label').getByText('Code', { exact: true })
     await monacoLabel.click()
     await expectInsideSelectedDecorator(monacoLabel)
 
@@ -1865,6 +1858,11 @@ describe('lexicalMain', () => {
     await page.keyboard.press('ArrowUp')
     await selectedNthDecorator(0)
     await page.keyboard.press('ArrowUp')
+    await expect(selectedDecorator).toBeHidden()
+    await expect
+      .poll(() => page.evaluate(() => window.getSelection()?.anchorNode?.textContent))
+      .toBe('Upload Node:')
+    await page.keyboard.press('ArrowDown')
     await selectedNthDecorator(0)
 
     // TODO: It would be nice to add tests with lists and nested lists
@@ -1873,30 +1871,31 @@ describe('lexicalMain', () => {
   })
 
   test('should render custom Cell component for richText fields in list view', async () => {
-    const doc = await payload.create({
+    await payload.create({
       collection: lexicalCustomCellSlug,
       data: {
-        title: 'Test Custom Cell',
         richTextField: {
           root: {
+            type: 'root',
             children: [
               {
-                children: [{ text: 'Hello', type: 'text', version: 1 }],
+                type: 'paragraph',
+                children: [{ type: 'text', text: 'Hello', version: 1 }],
                 direction: null,
                 format: '',
                 indent: 0,
-                type: 'paragraph',
                 version: 1,
               },
             ],
             direction: null,
             format: '',
             indent: 0,
-            type: 'root',
             version: 1,
           },
         },
+        title: 'Test Custom Cell',
       },
+      overrideAccess: true,
     })
 
     const url = new AdminUrlUtil(serverURL, lexicalCustomCellSlug)

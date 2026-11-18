@@ -6,9 +6,10 @@
 //
 // - code should go first as it prevents any transformations inside
 
-import { $createTextNode, $isTextNode } from 'lexical'
+import type { TextMatchTransformer } from '@lexical/markdown'
 
-import type { TextMatchTransformer } from '../../packages/@lexical/markdown/MarkdownTransformers.js'
+import { $createTextNode } from 'lexical'
+
 import type { SerializedLinkNode } from './server/schema.js'
 
 import { sanitizeUrl } from '../../lexical/utils/url.js'
@@ -16,7 +17,7 @@ import { $createLinkNode, $isLinkNode, LinkNode } from './nodes/LinkNode.js'
 
 // - then longer tags match (e.g. ** or __ should go before * or _)
 
-export type CreateLinkMarkdownTransformerArgs = {
+export type CreatePayloadLinkTransformerArgs = {
   /**
    * A function that receives a serialized internal link node and returns the URL string.
    * Required for internal links (linkType === 'internal') to be exported correctly, since
@@ -27,7 +28,7 @@ export type CreateLinkMarkdownTransformerArgs = {
   internalDocToHref?: (args: { linkNode: SerializedLinkNode }) => string
 }
 
-const replaceTransformer: TextMatchTransformer['replace'] = (textNode, match) => {
+const $replaceTransformer: TextMatchTransformer['replace'] = (textNode, match) => {
   const [, linkText, linkUrl] = match
   const linkNode = $createLinkNode({
     fields: {
@@ -45,8 +46,8 @@ const replaceTransformer: TextMatchTransformer['replace'] = (textNode, match) =>
   return linkTextNode
 }
 
-export const createLinkMarkdownTransformer = (
-  args?: CreateLinkMarkdownTransformerArgs,
+export const createPayloadLinkTransformer = (
+  args?: CreatePayloadLinkTransformerArgs,
 ): TextMatchTransformer => ({
   type: 'text-match',
   dependencies: [LinkNode],
@@ -78,8 +79,8 @@ export const createLinkMarkdownTransformer = (
   },
   importRegExp: /(?<!!)\[([^[]+)\]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)/,
   regExp: /(?<!!)\[([^[]+)\]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)$/,
-  replace: replaceTransformer,
+  replace: $replaceTransformer,
   trigger: ')',
 })
 
-export const LinkMarkdownTransformer: TextMatchTransformer = createLinkMarkdownTransformer()
+export const PAYLOAD_LINK: TextMatchTransformer = createPayloadLinkTransformer()

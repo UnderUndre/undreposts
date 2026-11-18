@@ -77,20 +77,36 @@ async function build() {
     bundle: true,
     minify: true,
     outdir: 'dist-styles',
+    loader: { '.svg': 'dataurl' },
     packages: 'external',
     plugins: [sassPlugin({ css: 'external' })],
   })
 
   try {
-    fs.renameSync('dist-styles/index.css', `${directoryArg}/styles.css`)
+    // Writing esbuild's component styles alone would overwrite the base stylesheet copied by copyfiles.
+    // Include the entry's imports and global rules so published styles retain the tokens that prevent controls from collapsing.
+    // Read from source because copyfiles does not populate alternative output directories such as esbuild.
+    const stylesEntry = fs.readFileSync('src/styles.css', 'utf8')
+
+    const baseCss = stylesEntry.replace(
+      /@import\s+['"]\.\/(css\/[^'"]+)['"];?/g,
+      (_import, relativePath) => fs.readFileSync(path.join('src', relativePath), 'utf8'),
+    )
+
+    const componentCss = fs.readFileSync('dist-styles/index.css', 'utf8')
+
+    fs.writeFileSync(`${directoryArg}/styles.css`, `${baseCss}\n${componentCss}`, 'utf8')
     fs.rmSync('dist-styles', { recursive: true })
   } catch (err) {
-    console.error(`Error while renaming index.css and dist-styles: ${err}`)
+    console.error(`Error while bundling styles.css and removing dist-styles: ${err}`)
     throw err
   }
 
   console.log('styles.css bundled successfully')
-  // Bundle `client.ts`
+
+  // Bundle `client.ts`. Admin code must import client code from this barrel only:
+  // subpaths like `@payloadcms/ui/elements/Link` stay unbundled for apps outside the
+  // admin panel, and hold their own copies of providers and contexts.
   const resultClient = await esbuild.build({
     entryPoints: ['dist/exports/client/index.js'],
     bundle: true,
@@ -132,6 +148,10 @@ function require(m) {
       'react-dom',
       'next',
       'crypto',
+      // `sonner` owns a module-level toast event bus that the mounted `<Toaster>`
+      // subscribes to. Keep it external so code that imports `sonner` directly
+      // dispatches to the same bus as the barrel's `<Toaster>`.
+      'sonner',
     ],
     //packages: 'external',
     minify: true,
@@ -147,8 +167,8 @@ function require(m) {
         }),*/
     ],
     sourcemap: true,
-    // 24.15.0 is the lowest version of node supported by Payload
-    target: 'node24.15.0',
+    // 24.22.3 is the lowest version of node supported by Payload
+    target: 'node24.22.3',
   })
   console.log('client.ts bundled successfully')
 
@@ -186,8 +206,8 @@ function require(m) {
     tsconfig: path.resolve(dirname, './tsconfig.json'),
     plugins: [removeCSSImports, commonjs()],
     sourcemap: true,
-    // 24.15.0 is the lowest version of node supported by Payload
-    target: 'node24.15.0',
+    // 24.22.3 is the lowest version of node supported by Payload
+    target: 'node24.22.3',
   })
   console.log('shared.ts bundled successfully')
 

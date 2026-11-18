@@ -21,6 +21,7 @@ export { useThrottledEffect } from '../../hooks/useThrottledEffect.js'
 export { useEffectEvent } from '../../hooks/useEffectEvent.js'
 export { FieldPathContext, useFieldPath } from '../../forms/RenderFields/context.js'
 export { useQueue } from '../../hooks/useQueue.js'
+export type { QueueResult, Task, TaskContext, UseQueueResult } from '../../hooks/useQueue.js'
 
 export { useUseTitleField } from '../../hooks/useUseAsTitle.js'
 
@@ -39,6 +40,11 @@ export { QueryPresetsGroupByCell } from '../../elements/QueryPresets/cells/Group
 export { QueryPresetsColumnField } from '../../elements/QueryPresets/fields/ColumnsField/index.js'
 export { QueryPresetsWhereField } from '../../elements/QueryPresets/fields/WhereField/index.js'
 export { QueryPresetsGroupByField } from '../../elements/QueryPresets/fields/GroupByField/index.js'
+export { CollectionCardsClient } from '../../widgets/CollectionCards/index.client.js'
+export { CollectionQuerySortField } from '../../widgets/CollectionQuery/SortField/index.js'
+export { CollectionFilter } from '../../widgets/shared/CollectionFilter/index.js'
+export { UploadDropzoneCollectionsField } from '../../widgets/UploadDropzone/CollectionsField/index.js'
+export { UploadDropzoneWidgetClient } from '../../widgets/UploadDropzone/index.client.js'
 export { QueryPresetsHeading } from '../../elements/QueryPresets/fields/Heading/index.js'
 
 // elements
@@ -62,6 +68,8 @@ export type {
   DialogSize,
 } from '../../elements/Dialog/index.js'
 export { Link } from '../../elements/Link/index.js'
+export { LLMInstructionsDescription } from '../../elements/LLMInstructionsDescription/index.js'
+export { LLMInstructionsMenuItem } from '../../elements/LLMInstructionsMenuItem/index.js'
 export { LeaveWithoutSaving } from '../../elements/LeaveWithoutSaving/index.js'
 export { DocumentTakeOver } from '../../elements/DocumentTakeOver/index.js'
 export { DocumentStaleData } from '../../elements/DocumentStaleData/index.js'
@@ -72,6 +80,7 @@ export {
   useCellProps,
 } from '../../providers/TableColumns/RenderDefaultCell/index.js'
 export { DateCell } from '../../elements/Table/DefaultCell/fields/Date/index.js'
+export { StatusCell } from '../../elements/Table/DefaultCell/fields/Status/index.js'
 export { TableSection } from '../../elements/TableSection/index.js'
 export type {
   TableSectionContentProps,
@@ -86,10 +95,10 @@ export { AppHeader } from '../../elements/AppHeader/index.js'
 export { MenuSeparator } from '../../elements/MenuSeparator/index.js'
 export { RenderCustomComponent } from '../../elements/RenderCustomComponent/index.js'
 export {
-  BulkUploadDrawer,
+  BulkUploadModal,
   BulkUploadProvider,
   useBulkUpload,
-  useBulkUploadDrawerSlug,
+  useBulkUploadModalSlug,
 } from '../../elements/BulkUpload/index.js'
 export { DrawerContentContainer } from '../../elements/DrawerContentContainer/index.js'
 export type { BulkUploadProps } from '../../elements/BulkUpload/index.js'
@@ -102,8 +111,14 @@ export type { TabsProps, TabsTab } from '../../elements/Tabs/index.js'
 export { AnimateHeight } from '../../elements/AnimateHeight/index.js'
 export { PillSelector, type SelectablePill } from '../../elements/PillSelector/index.js'
 export { Card } from '../../elements/Card/index.js'
+export { CardGrid } from '../../elements/CardGrid/index.js'
+export type { CardGridProps } from '../../elements/CardGrid/index.js'
 export { Chip } from '../../elements/Chip/index.js'
 export type { ChipProps } from '../../elements/Chip/index.js'
+export { DocumentCard } from '../../elements/DocumentCard/index.js'
+export type { DocumentCardProps, DocumentCardThumbnail } from '../../elements/DocumentCard/index.js'
+export { LayoutToggle } from '../../elements/LayoutToggle/index.js'
+export type { DocumentLayout, LayoutToggleProps } from '../../elements/LayoutToggle/index.js'
 export { Collapsible, useCollapsible } from '../../elements/Collapsible/index.js'
 export { SidebarRow } from '../../elements/SidebarRow/index.js'
 export type { SidebarRowProps } from '../../elements/SidebarRow/index.js'
@@ -112,6 +127,7 @@ export { CopyLocaleData } from '../../elements/CopyLocaleData/index.js'
 export { CopyToClipboard } from '../../elements/CopyToClipboard/index.js'
 export { DeleteMany } from '../../elements/DeleteMany/index.js'
 export { DocumentControls } from '../../elements/DocumentControls/index.js'
+export { DocumentHeaderRoot } from '../../elements/DocumentHeader/DocumentHeaderRoot/index.js'
 export { Dropzone } from '../../elements/Dropzone/index.js'
 export { documentDrawerBaseClass, useDocumentDrawer } from '../../elements/DocumentDrawer/index.js'
 export {
@@ -142,6 +158,7 @@ export { Gutter } from '../../elements/Gutter/index.js'
 export { SidebarToggle } from '../../elements/SidebarToggle/index.js'
 export { HydrateAuthProvider } from '../../elements/HydrateAuthProvider/index.js'
 export { HydrateHierarchyProvider } from '../../elements/Hierarchy/HydrateProvider/index.js'
+export { HydratePreferences } from '../../elements/HydratePreferences/index.js'
 export { IDLabel } from '../../elements/IDLabel/index.js'
 export { InputStepper } from '../../elements/InputStepper/index.js'
 export type { InputStepperProps } from '../../elements/InputStepper/index.js'
@@ -163,17 +180,19 @@ export type { HierarchyButtonClientProps } from '../../elements/Hierarchy/DocHea
 export { HierarchyFieldClient } from '../../elements/Hierarchy/Field/index.client.js'
 export type { HierarchyFieldClientProps } from '../../elements/Hierarchy/Field/index.client.js'
 export {
-  formatHierarchyDrawerSlug,
-  HierarchyDrawerToggler,
-  useHierarchyDrawer,
-} from '../../elements/Hierarchy/Drawer/useHierarchyDrawer.js'
+  formatHierarchyModalSlug,
+  HierarchyModalToggler,
+  useHierarchyModal,
+} from '../../elements/Hierarchy/Modal/useHierarchyModal.js'
 export type {
   HierarchyDrawerProps,
   HierarchyDrawerTogglerProps,
+  HierarchyModalProps,
+  HierarchyModalTogglerProps,
   SelectionWithPath,
-  UseHierarchyDrawer,
-  UseHierarchyDrawerArgs,
-} from '../../elements/Hierarchy/Drawer/types.js'
+  UseHierarchyModal,
+  UseHierarchyModalArgs,
+} from '../../elements/Hierarchy/Modal/types.js'
 export { ListSelection } from '../../views/List/ListSelection/index.js'
 export { CollectionListHeader as ListHeader } from '../../views/List/ListHeader/index.js'
 export { GroupByHeader } from '../../views/List/GroupByHeader/index.js'
@@ -185,12 +204,16 @@ export { FormLoadingOverlayToggle } from '../../elements/Loading/index.js'
 export { LoadingOverlay } from '../../elements/Loading/index.js'
 export { Spinner } from '../../elements/Spinner/index.js'
 export type { SpinnerProps } from '../../elements/Spinner/index.js'
+export { SegmentedControl } from '../../elements/SegmentedControl/index.js'
+export type {
+  SegmentedControlOptionProps,
+  SegmentedControlRootProps,
+} from '../../elements/SegmentedControl/index.js'
 export { Switch } from '../../elements/Switch/index.js'
 export type { SwitchProps } from '../../elements/Switch/index.js'
 export { DelayedSpinner } from '../../elements/DelayedSpinner/index.js'
 export type { DelayedSpinnerProps } from '../../elements/DelayedSpinner/index.js'
 export { Logout } from '../../elements/Logout/index.js'
-export { NavToggler } from '../../elements/Nav/NavToggler/index.js'
 export { NavSidebarToggle } from '../../elements/Nav/NavSidebarToggle/index.js'
 export { NavWrapper } from '../../elements/Nav/NavWrapper/index.js'
 export { SettingsMenuButton } from '../../elements/Nav/SettingsMenuButton/index.js'
@@ -357,6 +380,7 @@ export { File } from '../../graphics/File/index.js'
 export { CalendarIcon } from '../../icons/Calendar/index.js'
 export { CheckIcon } from '../../icons/Check/index.js'
 export { ChevronIcon } from '../../icons/Chevron/index.js'
+export { ClockIcon } from '../../icons/Clock/index.js'
 export { CloseMenuIcon } from '../../icons/CloseMenu/index.js'
 export { CodeBlockIcon } from '../../icons/CodeBlock/index.js'
 export { CopyIcon } from '../../icons/Copy/index.js'
@@ -365,12 +389,13 @@ export {
   AlignJustifiedIcon as DragHandleIcon,
 } from '../../icons/AlignJustified/index.js'
 export { EditIcon } from '../../icons/Edit/index.js'
-export { ExternalLinkIcon } from '../../icons/ExternalLink/index.js'
 export { LineIcon } from '../../icons/Line/index.js'
 export { LinkIcon } from '../../icons/Link/index.js'
 export { LogOutIcon } from '../../icons/LogOut/index.js'
 export { MinimizeMaximizeIcon } from '../../icons/MinimizeMaximize/index.js'
 export { MoreIcon } from '../../icons/More/index.js'
+export { NewTabIcon } from '../../icons/NewTab/index.js'
+export { PinIcon } from '../../icons/Pin/index.js'
 export { PlusIcon } from '../../icons/Plus/index.js'
 export { SearchIcon } from '../../icons/Search/index.js'
 export { SwapIcon } from '../../icons/Swap/index.js'
@@ -380,7 +405,9 @@ export { FolderIcon } from '../../icons/Folder/index.js'
 export { GearIcon } from '../../icons/Gear/index.js'
 export { DocumentIcon } from '../../icons/Document/index.js'
 export { MoveFolderIcon } from '../../icons/MoveFolder/index.js'
+export { ActivityWidgetClient } from '../../widgets/Activity/index.client.js'
 export { GridViewIcon } from '../../icons/GridView/index.js'
+export { TableIcon } from '../../icons/Table/index.js'
 export { WriteIcon } from '../../icons/Write/index.js'
 export { AlignJustifiedIcon as ListViewIcon } from '../../icons/AlignJustified/index.js'
 export { ArrowIcon } from '../../icons/Arrow/index.js'
@@ -395,7 +422,9 @@ export { LockIcon } from '../../icons/Lock/index.js'
 export { LockOpenIcon } from '../../icons/LockOpen/index.js'
 export { PeopleIcon } from '../../icons/People/index.js'
 export { RefreshIcon } from '../../icons/Refresh/index.js'
-export { SortDownIcon } from '../../icons/Sort/index.js'
+export { ReplaceIcon } from '../../icons/Replace/index.js'
+export { SortDownIcon, SortUpIcon } from '../../icons/Sort/index.js'
+export { SpinnerIcon } from '../../icons/Spinner/index.js'
 export { ThreeDotsIcon } from '../../icons/ThreeDots/index.js'
 export { TrashIcon } from '../../icons/Trash/index.js'
 export { ErrorIcon } from '../../icons/Error/index.js'
@@ -418,8 +447,9 @@ export {
   useServerFunctions,
 } from '../../providers/ServerFunctions/index.js'
 export { ActionsProvider, useActions } from '../../providers/Actions/index.js'
+export { AuthSessionDebug } from '../../providers/Auth/AuthSessionDebug/index.js'
 export { AuthProvider, useAuth } from '../../providers/Auth/index.js'
-export type { UserWithToken } from '../../providers/Auth/index.js'
+export type { AuthSession, UserWithToken } from '../../providers/Auth/index.js'
 export { ClientFunctionProvider, useClientFunctions } from '../../providers/ClientFunction/index.js'
 export { useAddClientFunction } from '../../providers/ClientFunction/index.js'
 
@@ -431,7 +461,12 @@ export {
   useRouteTransition,
 } from '../../providers/RouteTransition/index.js'
 export { ConfigProvider, PageConfigProvider, useConfig } from '../../providers/Config/index.js'
+export { PageLocaleProvider } from '../../providers/PageLocale/index.js'
 export { DocumentEventsProvider, useDocumentEvents } from '../../providers/DocumentEvents/index.js'
+export {
+  FormErrorHandlerContext,
+  useFormErrorHandler,
+} from '../../providers/FormErrorHandler/index.js'
 export { DocumentInfoProvider, useDocumentInfo } from '../../providers/DocumentInfo/index.js'
 export { useDocumentTitle } from '../../providers/DocumentTitle/index.js'
 export type { DocumentTitleContext } from '../../providers/DocumentTitle/index.js'
@@ -451,7 +486,8 @@ export { ListQueryProvider, useListQuery } from '../../providers/ListQuery/index
 export { LocaleProvider, useLocale } from '../../providers/Locale/index.js'
 export { OperationProvider, useOperation } from '../../providers/Operation/index.js'
 export { PreferencesProvider, usePreferences } from '../../providers/Preferences/index.js'
-export { RootProvider } from '../../providers/Root/index.js'
+export { RootProviders } from '../../layouts/Root/RootProviders.js'
+export type { RootProviderProps } from '../../layouts/Root/RootProviders.js'
 export {
   PayloadLink,
   RouterAdapterContext,
@@ -482,11 +518,17 @@ export { UploadHandlersProvider, useUploadHandlers } from '../../providers/Uploa
 export type { UploadHandlersContext } from '../../providers/UploadHandlers/index.js'
 export {
   defaultTheme,
+  getHighContrastModeFromSystem,
+  getThemeFromSystem,
+  type RootThemeContext,
   type Theme,
   type ThemeContext,
   ThemeProvider,
+  useRootTheme,
   useTheme,
 } from '../../providers/Theme/index.js'
+export { EmbedProvider, useEmbed } from '../../providers/Embed/index.js'
+export type { EmbedContext } from '../../providers/Embed/index.js'
 export { TranslationProvider, useTranslation } from '../../providers/Translation/index.js'
 export { useWindowInfo, WindowInfoProvider } from '../../providers/WindowInfo/index.js'
 export { useControllableState } from '../../hooks/useControllableState.js'
@@ -552,3 +594,6 @@ export type {
 
 export { useLivePreviewContext } from '../../providers/LivePreview/context.js'
 export { LivePreviewWindow } from '../../elements/LivePreview/Window/index.js'
+
+export { DocumentRoot } from '../../layouts/Root/DocumentRoot.js'
+export type { DocumentRootProps, RootLayoutFont } from '../../layouts/Root/DocumentRoot.js'

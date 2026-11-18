@@ -5,7 +5,7 @@ import type {
   SanitizedConfig,
   TextField,
   TextFieldSingleValidation,
-  TypedUser,
+  User,
 } from 'payload'
 
 import type { LinkFields } from './schema.js'
@@ -63,7 +63,7 @@ export const getBaseFields = (
         },
       ],
       required: true,
-    } as RadioField,
+    },
     {
       name: 'url',
       type: 'text',
@@ -121,7 +121,7 @@ export const getBaseFields = (
               const admin = config.collections.find(({ slug }) => slug === relationTo)?.admin
 
               const hidden = admin?.hidden
-              if (typeof hidden === 'function' && hidden({ user } as { user: TypedUser })) {
+              if (typeof hidden === 'function' && hidden({ user } as { user: User })) {
                 return false
               }
 

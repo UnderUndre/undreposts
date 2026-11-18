@@ -8,13 +8,14 @@ import type {
 } from 'payload'
 
 import { getTranslation } from '@payloadcms/translations'
+import { RenderServerComponent } from '@payloadcms/ui/elements/RenderServerComponent'
 import { renderField } from '@payloadcms/ui/forms/renderField'
 import { getFromImportMap } from 'payload/shared'
 import React from 'react'
 
 import type { SanitizedServerEditorConfig } from '../lexical/config/types.js'
 import type {
-  LexicalEditorProps,
+  LexicalEditorArgs,
   LexicalEditorViewMap,
   LexicalFieldAdminClientProps,
   LexicalRichTextFieldProps,
@@ -30,7 +31,7 @@ export const RscEntryLexicalField: React.FC<
     sanitizedEditorConfig: SanitizedServerEditorConfig
   } & ClientComponentProps &
     Pick<FieldPaths, 'path'> &
-    Pick<LexicalEditorProps, 'admin' | 'views'> &
+    Pick<LexicalEditorArgs, 'admin' | 'views'> &
     ServerComponentProps
 > = async (args) => {
   const field: RichTextFieldType = args.field as RichTextFieldType
@@ -68,6 +69,7 @@ export const RscEntryLexicalField: React.FC<
         operation: args.operation,
         permissions: args.permissions,
         preferences: args.preferences,
+        renderComponent: args.renderComponent || RenderServerComponent,
         renderFieldFn: renderField,
         req: args.req,
       },

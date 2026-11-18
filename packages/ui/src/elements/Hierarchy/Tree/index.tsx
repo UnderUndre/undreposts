@@ -18,7 +18,7 @@ import { CreateDocumentButton } from '../../CreateDocumentButton/index.js'
 import { DelayedSpinner } from '../../DelayedSpinner/index.js'
 import { DocumentDrawer } from '../../DocumentDrawer/index.js'
 import { LoadMore } from './LoadMore/index.js'
-import { TreeFocusProvider, useTreeFocus } from './TreeFocusContext.js'
+import { TreeFocusProvider, useFocusableItem, useTreeFocus } from './TreeFocusContext.js'
 import { TreeNode } from './TreeNode/index.js'
 import { useChildren } from './useChildren.js'
 import './index.css'
@@ -155,11 +155,26 @@ const HierarchyTreeInner: React.FC<HierarchyTreeProps> = ({
     childrenCache.current.clear()
   }
 
-  useMemo(() => {
-    if (!initialData || initialData.docs.length === 0) {
-      return
-    }
+  // Fill the cache during render, so children find initialData on their first render. Compares the
+  // inputs like useMemo would, since a useMemo used only for its side effect isn't guaranteed to run.
+  const initialDataInputs = [
+    initialData,
+    filterByCollections,
+    parentFieldName,
+    collectionSlug,
+    treeLimit,
+    baseFilterKey,
+  ]
+  const prevInitialDataInputsRef = useRef<typeof initialDataInputs>(null)
+  const haveInitialDataInputsChanged =
+    !prevInitialDataInputsRef.current ||
+    initialDataInputs.some((input, i) => !Object.is(input, prevInitialDataInputsRef.current[i]))
 
+  if (haveInitialDataInputsChanged) {
+    prevInitialDataInputsRef.current = initialDataInputs
+  }
+
+  if (haveInitialDataInputsChanged && initialData && initialData.docs.length > 0) {
     const docsByParent = new Map<string, TreeDocument[]>()
     for (const doc of initialData.docs) {
       const parentId = doc[parentFieldName] || 'null'
@@ -194,9 +209,17 @@ const HierarchyTreeInner: React.FC<HierarchyTreeProps> = ({
         })
       }
     }
-  }, [initialData, filterByCollections, parentFieldName, collectionSlug, treeLimit, baseFilterKey])
+  }
 
   const treeRef = useRef<HTMLDivElement>(null)
+  const allOptionRef = useRef<HTMLDivElement>(null)
+  const allOptionID = useId()
+  const { handleFocus: handleAllFocus, tabIndex: allTabIndex } = useFocusableItem({
+    id: allOptionID,
+    type: 'node',
+    isInitialTabStop: true,
+    ref: allOptionRef,
+  })
 
   const {
     children: rootNodes,
@@ -233,12 +256,9 @@ const HierarchyTreeInner: React.FC<HierarchyTreeProps> = ({
 
   const handleTreeKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
-        moveFocus('down')
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        moveFocus('up')
+        moveFocus(e.key === 'ArrowDown' ? 'down' : 'up')
       }
     },
     [moveFocus],
@@ -295,14 +315,16 @@ const HierarchyTreeInner: React.FC<HierarchyTreeProps> = ({
             .filter(Boolean)
             .join(' ')}
           onClick={handleAllClick}
+          onFocus={handleAllFocus}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
               handleAllClick()
             }
           }}
+          ref={allOptionRef}
           role="treeitem"
-          tabIndex={0}
+          tabIndex={allTabIndex}
         >
           <span className="sidebar-row__title">
             {t('general:all')}{' '}
@@ -312,7 +334,9 @@ const HierarchyTreeInner: React.FC<HierarchyTreeProps> = ({
         {canCreate && (
           <>
             <Button
-              aria-label={t('general:createNew')}
+              aria-label={t('general:createNewLabel', {
+                label: getTranslation(collectionConfig.labels.singular, i18n),
+              })}
               buttonStyle="ghost"
               className={`${baseClass}__create-button`}
               margin={false}

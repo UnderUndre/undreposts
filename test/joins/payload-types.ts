@@ -67,6 +67,12 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'access-join-articles': AccessJoinArticle;
+    'access-join-notes': AccessJoinNote;
+    'access-join-parents': AccessJoinParent;
+    'operator-handler-join-articles': OperatorHandlerJoinArticle;
+    'operator-handler-join-notes': OperatorHandlerJoinNote;
+    'operator-handler-join-parents': OperatorHandlerJoinParent;
     users: User;
     posts: Post;
     categories: Category;
@@ -86,6 +92,7 @@ export interface Config {
     'depth-joins-2': DepthJoins2;
     'depth-joins-3': DepthJoins3;
     'multiple-collections-parents': MultipleCollectionsParent;
+    'multiple-collections-has-many-parents': MultipleCollectionsHasManyParent;
     'multiple-collections-1': MultipleCollections1;
     'multiple-collections-2': MultipleCollections2;
     folders: Folder;
@@ -93,13 +100,19 @@ export interface Config {
     'example-posts': ExamplePost;
     folderPoly1: FolderPoly1;
     folderPoly2: FolderPoly2;
-    'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    'access-join-parents': {
+      articles: 'access-join-articles';
+      children: 'access-join-articles' | 'access-join-notes';
+    };
+    'operator-handler-join-parents': {
+      children: 'operator-handler-join-articles' | 'operator-handler-join-notes';
+    };
     users: {
       posts: 'posts';
     };
@@ -154,11 +167,20 @@ export interface Config {
     'multiple-collections-parents': {
       children: 'multiple-collections-1' | 'multiple-collections-2';
     };
+    'multiple-collections-has-many-parents': {
+      children: 'multiple-collections-1' | 'multiple-collections-2';
+    };
     folders: {
       children: 'folders' | 'example-pages' | 'example-posts' | 'folderPoly1' | 'folderPoly2';
     };
   };
   collectionsSelect: {
+    'access-join-articles': AccessJoinArticlesSelect<false> | AccessJoinArticlesSelect<true>;
+    'access-join-notes': AccessJoinNotesSelect<false> | AccessJoinNotesSelect<true>;
+    'access-join-parents': AccessJoinParentsSelect<false> | AccessJoinParentsSelect<true>;
+    'operator-handler-join-articles': OperatorHandlerJoinArticlesSelect<false> | OperatorHandlerJoinArticlesSelect<true>;
+    'operator-handler-join-notes': OperatorHandlerJoinNotesSelect<false> | OperatorHandlerJoinNotesSelect<true>;
+    'operator-handler-join-parents': OperatorHandlerJoinParentsSelect<false> | OperatorHandlerJoinParentsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -178,6 +200,7 @@ export interface Config {
     'depth-joins-2': DepthJoins2Select<false> | DepthJoins2Select<true>;
     'depth-joins-3': DepthJoins3Select<false> | DepthJoins3Select<true>;
     'multiple-collections-parents': MultipleCollectionsParentsSelect<false> | MultipleCollectionsParentsSelect<true>;
+    'multiple-collections-has-many-parents': MultipleCollectionsHasManyParentsSelect<false> | MultipleCollectionsHasManyParentsSelect<true>;
     'multiple-collections-1': MultipleCollections1Select<false> | MultipleCollections1Select<true>;
     'multiple-collections-2': MultipleCollections2Select<false> | MultipleCollections2Select<true>;
     folders: FoldersSelect<false> | FoldersSelect<true>;
@@ -185,7 +208,6 @@ export interface Config {
     'example-posts': ExamplePostsSelect<false> | ExamplePostsSelect<true>;
     folderPoly1: FolderPoly1Select<false> | FolderPoly1Select<true>;
     folderPoly2: FolderPoly2Select<false> | FolderPoly2Select<true>;
-    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -200,6 +222,8 @@ export interface Config {
   locale: 'en' | 'es';
   widgets: {
     collections: CollectionsWidget;
+    'collection-query': CollectionQueryWidget;
+    activity: ActivityWidget;
   };
   user: User;
   jobs: {
@@ -227,6 +251,155 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-articles".
+ */
+export interface AccessJoinArticle {
+  id: string;
+  parent?: (string | null) | AccessJoinParent;
+  title?: string | null;
+  availability?: string | null;
+  score?: number | null;
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  coordinates?: [number, number] | null;
+  tags?: ('allowed-marker' | 'available' | 'not-permitted' | 'unavailable')[] | null;
+  mixedTags?: ('available' | 'not-permitted')[] | null;
+  variantValue?: string | null;
+  variantSelect?: ('available' | 'unavailable') | null;
+  localizedTags?: ('available' | 'unavailable')[] | null;
+  articleTags?: ('available' | 'unavailable')[] | null;
+  owner?: (string | null) | User;
+  settings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  items?:
+    | {
+        tags?: ('available' | 'unavailable')[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  details?: {
+    articleTags?: ('available' | 'unavailable')[] | null;
+    status?: string | null;
+    tags?: ('available' | 'not-permitted')[] | null;
+    mixedTags?: ('available' | 'not-permitted')[] | null;
+  };
+  articleMeta?: {
+    articleTags?: ('available' | 'unavailable')[] | null;
+    status?: string | null;
+  };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-parents".
+ */
+export interface AccessJoinParent {
+  id: string;
+  children?: {
+    docs?: (
+      | {
+          relationTo?: 'access-join-articles';
+          value: string | AccessJoinArticle;
+        }
+      | {
+          relationTo?: 'access-join-notes';
+          value: string | AccessJoinNote;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  articles?: {
+    docs?: (string | AccessJoinArticle)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-notes".
+ */
+export interface AccessJoinNote {
+  id: string;
+  parent?: (string | null) | AccessJoinParent;
+  title?: string | null;
+  availability?: string | null;
+  score?: number | null;
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  coordinates?: [number, number] | null;
+  tags?: ('allowed-marker' | 'available' | 'not-permitted' | 'unavailable')[] | null;
+  mixedTags?: ('available' | 'not-permitted') | null;
+  variantValue?: number | null;
+  variantSelect?: ('available' | 'unavailable') | null;
+  localizedTags?: ('available' | 'unavailable')[] | null;
+  owner?: (string | null) | User;
+  settings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  details_status?: string | null;
+  items?:
+    | {
+        tags?: ('available' | 'unavailable')[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  details?: {
+    tags?: ('available' | 'not-permitted')[] | null;
+    mixedTags?: ('available' | 'not-permitted') | null;
+  };
+  articleMeta?: {
+    status?: string | null;
+  };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -236,6 +409,14 @@ export interface User {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -243,6 +424,7 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -269,6 +451,7 @@ export interface Post {
    */
   isFiltered?: boolean | null;
   restrictedField?: string | null;
+  hiddenSecret?: string | null;
   upload?: (string | null) | Upload;
   category?: (string | null) | Category;
   categories?: (string | Category)[] | null;
@@ -344,6 +527,14 @@ export interface Post {
   tab?: {
     category?: (string | null) | Category;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -358,6 +549,14 @@ export interface Upload {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -506,6 +705,14 @@ export interface Category {
     totalDocs?: number;
   };
   enableErrorOnJoin?: boolean | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -517,6 +724,14 @@ export interface HiddenPost {
   id: string;
   title?: string | null;
   category?: (string | null) | Category;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -530,6 +745,14 @@ export interface Version {
   category?: (string | null) | Category;
   categoryVersion?: (string | null) | CategoriesVersion;
   categoryVersions?: (string | CategoriesVersion)[] | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -551,6 +774,14 @@ export interface CategoriesVersion {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -562,6 +793,14 @@ export interface CategoriesVersion {
 export interface Singular {
   id: string;
   category?: (string | null) | Category;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -577,6 +816,75 @@ export interface Block {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-articles".
+ */
+export interface OperatorHandlerJoinArticle {
+  id: string;
+  parent?: (string | null) | OperatorHandlerJoinParent;
+  title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-parents".
+ */
+export interface OperatorHandlerJoinParent {
+  id: string;
+  children?: {
+    docs?: (
+      | {
+          relationTo?: 'operator-handler-join-articles';
+          value: string | OperatorHandlerJoinArticle;
+        }
+      | {
+          relationTo?: 'operator-handler-join-notes';
+          value: string | OperatorHandlerJoinNote;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-notes".
+ */
+export interface OperatorHandlerJoinNote {
+  id: string;
+  parent?: (string | null) | OperatorHandlerJoinParent;
+  title?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "self-joins".
  */
 export interface SelfJoin {
@@ -587,6 +895,14 @@ export interface SelfJoin {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -598,6 +914,14 @@ export interface LocalizedPost {
   id: string;
   title?: string | null;
   category?: (string | null) | LocalizedCategory;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -613,6 +937,14 @@ export interface LocalizedCategory {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -628,6 +960,14 @@ export interface RestrictedCategory {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -643,6 +983,14 @@ export interface CategoriesJoinRestricted {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -655,6 +1003,14 @@ export interface CollectionRestricted {
   title?: string | null;
   canRead?: boolean | null;
   category?: (string | null) | CategoriesJoinRestricted;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -667,6 +1023,14 @@ export interface RestrictedPost {
   title?: string | null;
   restrictedField?: string | null;
   category?: (string | null) | RestrictedCategory;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -682,6 +1046,14 @@ export interface DepthJoins1 {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -696,6 +1068,14 @@ export interface DepthJoins2 {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -706,6 +1086,14 @@ export interface DepthJoins2 {
 export interface DepthJoins3 {
   id: string;
   rel?: (string | null) | DepthJoins1;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -729,6 +1117,14 @@ export interface MultipleCollectionsParent {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -739,8 +1135,48 @@ export interface MultipleCollectionsParent {
 export interface MultipleCollections1 {
   id: string;
   parent?: (string | null) | MultipleCollectionsParent;
+  hasManyParents?: (string | MultipleCollectionsHasManyParent)[] | null;
   title?: string | null;
   name?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "multiple-collections-has-many-parents".
+ */
+export interface MultipleCollectionsHasManyParent {
+  id: string;
+  children?: {
+    docs?: (
+      | {
+          relationTo?: 'multiple-collections-1';
+          value: string | MultipleCollections1;
+        }
+      | {
+          relationTo?: 'multiple-collections-2';
+          value: string | MultipleCollections2;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -751,8 +1187,17 @@ export interface MultipleCollections1 {
 export interface MultipleCollections2 {
   id: string;
   parent?: (string | null) | MultipleCollectionsParent;
+  hasManyParents?: (string | MultipleCollectionsHasManyParent)[] | null;
   title?: string | null;
   description?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -764,6 +1209,14 @@ export interface Folder {
   id: string;
   _h_folders?: (string | null) | Folder;
   name?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   _h_slugPath?: string | null;
@@ -805,6 +1258,14 @@ export interface ExamplePage {
   _h_folders?: (string | null) | Folder;
   title?: string | null;
   name?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -817,6 +1278,14 @@ export interface ExamplePost {
   _h_folders?: (string | null) | Folder;
   title?: string | null;
   description?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -828,6 +1297,14 @@ export interface FolderPoly1 {
   id: string;
   folderPoly1Title?: string | null;
   _h_folders?: (string | null) | Folder;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -839,31 +1316,14 @@ export interface FolderPoly2 {
   id: string;
   folderPoly2Title?: string | null;
   _h_folders?: (string | null) | Folder;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys".
- */
-export interface PayloadMcpApiKey {
-  id: string;
-  apiKey: string;
-  apiKeyIndex: string;
-  access?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  label?: string | null;
-  description?: string | null;
-  lastUsed?: string | null;
-  user: string | User;
-  overrideAccess?: boolean | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -891,6 +1351,30 @@ export interface PayloadKv {
 export interface PayloadLockedDocument {
   id: string;
   document?:
+    | ({
+        relationTo: 'access-join-articles';
+        value: string | AccessJoinArticle;
+      } | null)
+    | ({
+        relationTo: 'access-join-notes';
+        value: string | AccessJoinNote;
+      } | null)
+    | ({
+        relationTo: 'access-join-parents';
+        value: string | AccessJoinParent;
+      } | null)
+    | ({
+        relationTo: 'operator-handler-join-articles';
+        value: string | OperatorHandlerJoinArticle;
+      } | null)
+    | ({
+        relationTo: 'operator-handler-join-notes';
+        value: string | OperatorHandlerJoinNote;
+      } | null)
+    | ({
+        relationTo: 'operator-handler-join-parents';
+        value: string | OperatorHandlerJoinParent;
+      } | null)
     | ({
         relationTo: 'users';
         value: string | User;
@@ -968,6 +1452,10 @@ export interface PayloadLockedDocument {
         value: string | MultipleCollectionsParent;
       } | null)
     | ({
+        relationTo: 'multiple-collections-has-many-parents';
+        value: string | MultipleCollectionsHasManyParent;
+      } | null)
+    | ({
         relationTo: 'multiple-collections-1';
         value: string | MultipleCollections1;
       } | null)
@@ -994,10 +1482,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'folderPoly2';
         value: string | FolderPoly2;
-      } | null)
-    | ({
-        relationTo: 'payload-mcp-api-keys';
-        value: string | PayloadMcpApiKey;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1043,10 +1527,144 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-articles_select".
+ */
+export interface AccessJoinArticlesSelect<T extends boolean = true> {
+  parent?: T;
+  title?: T;
+  availability?: T;
+  score?: T;
+  coordinates?: T;
+  tags?: T;
+  mixedTags?: T;
+  variantValue?: T;
+  variantSelect?: T;
+  localizedTags?: T;
+  articleTags?: T;
+  owner?: T;
+  settings?: T;
+  items?:
+    | T
+    | {
+        tags?: T;
+        id?: T;
+      };
+  details?:
+    | T
+    | {
+        articleTags?: T;
+        status?: T;
+        tags?: T;
+        mixedTags?: T;
+      };
+  articleMeta?:
+    | T
+    | {
+        articleTags?: T;
+        status?: T;
+      };
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-notes_select".
+ */
+export interface AccessJoinNotesSelect<T extends boolean = true> {
+  parent?: T;
+  title?: T;
+  availability?: T;
+  score?: T;
+  coordinates?: T;
+  tags?: T;
+  mixedTags?: T;
+  variantValue?: T;
+  variantSelect?: T;
+  localizedTags?: T;
+  owner?: T;
+  settings?: T;
+  details_status?: T;
+  items?:
+    | T
+    | {
+        tags?: T;
+        id?: T;
+      };
+  details?:
+    | T
+    | {
+        tags?: T;
+        mixedTags?: T;
+      };
+  articleMeta?:
+    | T
+    | {
+        status?: T;
+      };
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-join-parents_select".
+ */
+export interface AccessJoinParentsSelect<T extends boolean = true> {
+  children?: T;
+  articles?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-articles_select".
+ */
+export interface OperatorHandlerJoinArticlesSelect<T extends boolean = true> {
+  id?: T;
+  parent?: T;
+  title?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-notes_select".
+ */
+export interface OperatorHandlerJoinNotesSelect<T extends boolean = true> {
+  id?: T;
+  parent?: T;
+  title?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operator-handler-join-parents_select".
+ */
+export interface OperatorHandlerJoinParentsSelect<T extends boolean = true> {
+  children?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
   posts?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1054,6 +1672,7 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  resetPasswordRequestedAt?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -1074,6 +1693,7 @@ export interface PostsSelect<T extends boolean = true> {
   author?: T;
   isFiltered?: T;
   restrictedField?: T;
+  hiddenSecret?: T;
   upload?: T;
   category?: T;
   categories?: T;
@@ -1127,6 +1747,8 @@ export interface PostsSelect<T extends boolean = true> {
     | {
         category?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1162,6 +1784,8 @@ export interface CategoriesSelect<T extends boolean = true> {
   inTab?: T;
   joinWithError?: T;
   enableErrorOnJoin?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1172,6 +1796,8 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface HiddenPostsSelect<T extends boolean = true> {
   title?: T;
   category?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1181,6 +1807,8 @@ export interface HiddenPostsSelect<T extends boolean = true> {
  */
 export interface UploadsSelect<T extends boolean = true> {
   relatedPosts?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1202,6 +1830,8 @@ export interface VersionsSelect<T extends boolean = true> {
   category?: T;
   categoryVersion?: T;
   categoryVersions?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1214,6 +1844,8 @@ export interface CategoriesVersionsSelect<T extends boolean = true> {
   title?: T;
   relatedVersions?: T;
   relatedVersionsMany?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1224,6 +1856,8 @@ export interface CategoriesVersionsSelect<T extends boolean = true> {
  */
 export interface SingularSelect<T extends boolean = true> {
   category?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1234,6 +1868,8 @@ export interface SingularSelect<T extends boolean = true> {
 export interface SelfJoinsSelect<T extends boolean = true> {
   rel?: T;
   joins?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1244,6 +1880,8 @@ export interface SelfJoinsSelect<T extends boolean = true> {
 export interface LocalizedPostsSelect<T extends boolean = true> {
   title?: T;
   category?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1254,6 +1892,8 @@ export interface LocalizedPostsSelect<T extends boolean = true> {
 export interface LocalizedCategoriesSelect<T extends boolean = true> {
   name?: T;
   relatedPosts?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1264,6 +1904,8 @@ export interface LocalizedCategoriesSelect<T extends boolean = true> {
 export interface RestrictedCategoriesSelect<T extends boolean = true> {
   name?: T;
   restrictedPosts?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1274,6 +1916,8 @@ export interface RestrictedCategoriesSelect<T extends boolean = true> {
 export interface CategoriesJoinRestrictedSelect<T extends boolean = true> {
   name?: T;
   collectionRestrictedJoin?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1285,6 +1929,8 @@ export interface RestrictedPostsSelect<T extends boolean = true> {
   title?: T;
   restrictedField?: T;
   category?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1296,6 +1942,8 @@ export interface CollectionRestrictedSelect<T extends boolean = true> {
   title?: T;
   canRead?: T;
   category?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1306,6 +1954,8 @@ export interface CollectionRestrictedSelect<T extends boolean = true> {
 export interface DepthJoins1Select<T extends boolean = true> {
   rel?: T;
   joins?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1315,6 +1965,8 @@ export interface DepthJoins1Select<T extends boolean = true> {
  */
 export interface DepthJoins2Select<T extends boolean = true> {
   joins?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1324,6 +1976,8 @@ export interface DepthJoins2Select<T extends boolean = true> {
  */
 export interface DepthJoins3Select<T extends boolean = true> {
   rel?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1333,6 +1987,19 @@ export interface DepthJoins3Select<T extends boolean = true> {
  */
 export interface MultipleCollectionsParentsSelect<T extends boolean = true> {
   children?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "multiple-collections-has-many-parents_select".
+ */
+export interface MultipleCollectionsHasManyParentsSelect<T extends boolean = true> {
+  children?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1342,8 +2009,11 @@ export interface MultipleCollectionsParentsSelect<T extends boolean = true> {
  */
 export interface MultipleCollections1Select<T extends boolean = true> {
   parent?: T;
+  hasManyParents?: T;
   title?: T;
   name?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1353,8 +2023,11 @@ export interface MultipleCollections1Select<T extends boolean = true> {
  */
 export interface MultipleCollections2Select<T extends boolean = true> {
   parent?: T;
+  hasManyParents?: T;
   title?: T;
   description?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1365,6 +2038,8 @@ export interface MultipleCollections2Select<T extends boolean = true> {
 export interface FoldersSelect<T extends boolean = true> {
   _h_folders?: T;
   name?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _h_slugPath?: T;
@@ -1380,6 +2055,8 @@ export interface ExamplePagesSelect<T extends boolean = true> {
   _h_folders?: T;
   title?: T;
   name?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1391,6 +2068,8 @@ export interface ExamplePostsSelect<T extends boolean = true> {
   _h_folders?: T;
   title?: T;
   description?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1401,6 +2080,8 @@ export interface ExamplePostsSelect<T extends boolean = true> {
 export interface FolderPoly1Select<T extends boolean = true> {
   folderPoly1Title?: T;
   _h_folders?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1411,22 +2092,8 @@ export interface FolderPoly1Select<T extends boolean = true> {
 export interface FolderPoly2Select<T extends boolean = true> {
   folderPoly2Title?: T;
   _h_folders?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys_select".
- */
-export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
-  apiKey?: T;
-  apiKeyIndex?: T;
-  access?: T;
-  label?: T;
-  description?: T;
-  lastUsed?: T;
-  user?: T;
-  overrideAccess?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1479,6 +2146,106 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collection-query_widget".
+ */
+export interface CollectionQueryWidget {
+  data?: {
+    title?: string | null;
+    relatedCollection:
+      | 'access-join-articles'
+      | 'access-join-notes'
+      | 'access-join-parents'
+      | 'operator-handler-join-articles'
+      | 'operator-handler-join-notes'
+      | 'operator-handler-join-parents'
+      | 'users'
+      | 'posts'
+      | 'categories'
+      | 'uploads'
+      | 'versions'
+      | 'categories-versions'
+      | 'singular'
+      | 'self-joins'
+      | 'localized-posts'
+      | 'localized-categories'
+      | 'restricted-categories'
+      | 'categories-join-restricted'
+      | 'restricted-posts'
+      | 'collection-restricted'
+      | 'depth-joins-1'
+      | 'depth-joins-2'
+      | 'depth-joins-3'
+      | 'multiple-collections-parents'
+      | 'multiple-collections-has-many-parents'
+      | 'multiple-collections-1'
+      | 'multiple-collections-2'
+      | 'folders'
+      | 'example-pages'
+      | 'example-posts'
+      | 'folderPoly1'
+      | 'folderPoly2';
+    where?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    sortField?: string | null;
+    sortDirection?: ('asc' | 'desc') | null;
+    limit?: number | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity_widget".
+ */
+export interface ActivityWidget {
+  data?: {
+    excludedCollections?:
+      | (
+          | 'access-join-articles'
+          | 'access-join-notes'
+          | 'access-join-parents'
+          | 'operator-handler-join-articles'
+          | 'operator-handler-join-notes'
+          | 'operator-handler-join-parents'
+          | 'users'
+          | 'posts'
+          | 'categories'
+          | 'uploads'
+          | 'versions'
+          | 'categories-versions'
+          | 'singular'
+          | 'self-joins'
+          | 'localized-posts'
+          | 'localized-categories'
+          | 'restricted-categories'
+          | 'categories-join-restricted'
+          | 'restricted-posts'
+          | 'collection-restricted'
+          | 'depth-joins-1'
+          | 'depth-joins-2'
+          | 'depth-joins-3'
+          | 'multiple-collections-parents'
+          | 'multiple-collections-has-many-parents'
+          | 'multiple-collections-1'
+          | 'multiple-collections-2'
+          | 'folders'
+          | 'example-pages'
+          | 'example-posts'
+          | 'folderPoly1'
+          | 'folderPoly2'
+        )[]
+      | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

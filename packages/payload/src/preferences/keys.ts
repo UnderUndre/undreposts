@@ -23,4 +23,14 @@ export const PREFERENCE_KEYS = {
    * Stores active sidebar tab selection
    */
   NAV_SIDEBAR_ACTIVE_TAB: 'nav-sidebar-active-tab',
+
+  /**
+   * Stores the documents the user has pinned in the admin
+   */
+  PINNED_DOCUMENTS: 'pinned-documents',
+
+  /**
+   * Stores the documents the user has recently viewed in the admin
+   */
+  RECENTLY_VIEWED: 'recently-viewed',
 } as const

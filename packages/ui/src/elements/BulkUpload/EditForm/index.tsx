@@ -5,17 +5,14 @@ import React, { useCallback, useEffect, useMemo } from 'react'
 import type { EditFormProps } from './types.js'
 
 import { Form, useForm } from '../../../forms/Form/index.js'
-import { type FormProps } from '../../../forms/Form/types.js'
 import { WatchChildErrors } from '../../../forms/WatchChildErrors/index.js'
 import { useConfig } from '../../../providers/Config/index.js'
 import { useDocumentEvents } from '../../../providers/DocumentEvents/index.js'
 import { useDocumentInfo } from '../../../providers/DocumentInfo/index.js'
 import { OperationProvider } from '../../../providers/Operation/index.js'
-import { useServerFunctions } from '../../../providers/ServerFunctions/index.js'
-import { abortAndIgnore, handleAbortRef } from '../../../utilities/abortAndIgnore.js'
 import { useDocumentDrawerContext } from '../../DocumentDrawer/Provider.js'
 import { DocumentFields } from '../../DocumentFields/index.js'
-import { Upload_v4 } from '../../Upload/index.js'
+import { FileManager } from '../../FileManager/index.js'
 import { useFormsManager } from '../FormsManager/index.js'
 import './index.css'
 
@@ -26,7 +23,6 @@ const baseClass = 'collection-edit'
 // This is solely to support custom edit views which get server-rendered
 
 export function EditForm({
-  BeforeDocumentMeta,
   resetUploadEdits,
   submitted,
   updateUploadEdits,
@@ -36,7 +32,6 @@ export function EditForm({
     action,
     collectionSlug: docSlug,
     docPermissions,
-    getDocPreferences,
     hasSavePermission,
     initialState,
     isInitializing,
@@ -45,11 +40,7 @@ export function EditForm({
 
   const { drawerSlug, onSave: onSaveFromContext } = useDocumentDrawerContext()
 
-  const { getFormState } = useServerFunctions()
-
   const { getEntityConfig } = useConfig()
-
-  const abortOnChangeRef = React.useRef<AbortController>(null)
 
   const collectionConfig = getEntityConfig({ collectionSlug: docSlug })
   const { reportUpdate } = useDocumentEvents()
@@ -79,38 +70,6 @@ export function EditForm({
     [collectionSlug, onSaveFromContext, reportUpdate, resetUploadEdits, drawerSlug],
   )
 
-  const onChange: NonNullable<FormProps['onChange']>[0] = useCallback(
-    async ({ formState: prevFormState, submitted }) => {
-      const controller = handleAbortRef(abortOnChangeRef)
-
-      const docPreferences = await getDocPreferences()
-
-      const { state: newFormState } = await getFormState({
-        collectionSlug,
-        docPermissions,
-        docPreferences,
-        formState: prevFormState,
-        operation: 'create',
-        schemaPath,
-        signal: controller.signal,
-        skipValidation: !submitted,
-      })
-
-      abortOnChangeRef.current = null
-
-      return newFormState
-    },
-    [collectionSlug, schemaPath, getDocPreferences, getFormState, docPermissions],
-  )
-
-  useEffect(() => {
-    const abortOnChange = abortOnChangeRef.current
-
-    return () => {
-      abortAndIgnore(abortOnChange)
-    }
-  }, [])
-
   return (
     <OperationProvider operation="create">
       <Form
@@ -120,30 +79,29 @@ export function EditForm({
         initialState={isInitializing ? undefined : initialState}
         isInitializing={isInitializing}
         method="POST"
-        onChange={[onChange]}
         onSuccess={onSave}
+        schemaPath={schemaPath}
         submitted={submitted}
       >
-        <DocumentFields
-          BeforeFields={
-            <React.Fragment>
-              {CustomUpload || (
-                <Upload_v4
-                  collectionSlug={collectionConfig.slug}
-                  customActions={[BeforeDocumentMeta].filter(Boolean)}
-                  initialState={initialState}
-                  resetUploadEdits={resetUploadEdits}
-                  updateUploadEdits={updateUploadEdits}
-                  uploadConfig={collectionConfig.upload}
-                  uploadEdits={uploadEdits}
-                />
-              )}
-            </React.Fragment>
-          }
-          docPermissions={docPermissions}
-          fields={collectionConfig.fields}
-          schemaPathSegments={[collectionConfig.slug]}
-        />
+        <div className={`${baseClass}__upload-layout`}>
+          {CustomUpload || (
+            <FileManager
+              collectionSlug={collectionConfig.slug}
+              initialState={initialState}
+              isUploadStartedOnSelect={false}
+              resetUploadEdits={resetUploadEdits}
+              updateUploadEdits={updateUploadEdits}
+              uploadConfig={collectionConfig.upload}
+              uploadEdits={uploadEdits}
+            />
+          )}
+          <DocumentFields
+            docPermissions={docPermissions}
+            fields={collectionConfig.fields}
+            forceSidebarWrap
+            schemaPathSegments={[collectionConfig.slug]}
+          />
+        </div>
         <ReportAllErrors />
         <GetFieldProxy />
       </Form>
@@ -156,7 +114,6 @@ function GetFieldProxy() {
   const { getFormDataRef } = useFormsManager()
 
   useEffect(() => {
-    // eslint-disable-next-line react-compiler/react-compiler -- TODO: fix
     getFormDataRef.current = getFields
   }, [getFields, getField, getFormDataRef])
 

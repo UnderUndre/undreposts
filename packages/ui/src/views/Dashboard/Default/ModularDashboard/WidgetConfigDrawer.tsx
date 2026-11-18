@@ -2,10 +2,11 @@
 
 import type { ClientWidget, FormState } from 'payload'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { v4 as uuid } from 'uuid'
 
 import { Drawer } from '../../../../elements/Drawer/index.js'
+import { Gutter } from '../../../../elements/Gutter/index.js'
 import { useModal } from '../../../../elements/Modal/index.js'
 import { ShimmerEffect } from '../../../../elements/ShimmerEffect/index.js'
 import { Form } from '../../../../forms/Form/index.js'
@@ -40,7 +41,6 @@ export function WidgetConfigDrawer({
   const { t } = useTranslation()
   const locale = useLocale()
   const localeCode = locale?.code ?? 'en'
-  const onChangeAbortControllerRef = useRef<AbortController>(null)
 
   const [initialState, setInitialState] = useState<false | FormState | undefined>(false)
 
@@ -89,69 +89,37 @@ export function WidgetConfigDrawer({
     }
   }, [fields, getFormState, isOpen, localeCode, widget.slug, widgetData])
 
-  const onChange = useCallback(
-    async ({ formState: prevFormState }: { formState: FormState }) => {
-      abortAndIgnore(onChangeAbortControllerRef.current)
-
-      const controller = new AbortController()
-      onChangeAbortControllerRef.current = controller
-
-      const { state } = await getFormState({
-        docPermissions: {
-          fields: true,
-        },
-        docPreferences: EMPTY_WIDGET_PREFERENCES,
-        formState: prevFormState,
-        operation: 'update',
-        schemaPath: widget.slug,
-        signal: controller.signal,
-        widgetSlug: widget.slug,
-      })
-
-      if (!state) {
-        return prevFormState
-      }
-
-      return state
-    },
-    [getFormState, widget.slug],
-  )
-
-  useEffect(() => {
-    return () => {
-      abortAndIgnore(onChangeAbortControllerRef.current)
-    }
-  }, [])
-
   return (
     <Drawer slug={drawerSlug} title={`${t('general:edit')} ${widgetLabel}`}>
-      {initialState === false ? (
-        <ShimmerEffect height="250px" />
-      ) : (
-        <OperationProvider operation="update">
-          <Form
-            fields={fields}
-            initialState={initialState}
-            onChange={[onChange]}
-            onSubmit={(_, data) => {
-              onSave(mergeLocaleData(widgetData ?? {}, data, localeCode, fields))
-              closeModal(drawerSlug)
-            }}
-            uuid={formUUID}
-          >
-            <RenderFields
+      <Gutter className="widget-config-drawer__content">
+        {initialState === false ? (
+          <ShimmerEffect height="250px" />
+        ) : (
+          <OperationProvider operation="update">
+            <Form
               fields={fields}
-              forceRender
-              parentIndexPath=""
-              parentPath=""
-              parentSchemaPath={widget.slug}
-              permissions={true}
-              readOnly={false}
-            />
-            <FormSubmit>{t('fields:saveChanges')}</FormSubmit>
-          </Form>
-        </OperationProvider>
-      )}
+              initialState={initialState}
+              onSubmit={(_, data) => {
+                onSave(mergeLocaleData(widgetData ?? {}, data, localeCode, fields))
+                closeModal(drawerSlug)
+              }}
+              uuid={formUUID}
+              widgetSlug={widget.slug}
+            >
+              <RenderFields
+                fields={fields}
+                forceRender
+                parentIndexPath=""
+                parentPath=""
+                parentSchemaPath={widget.slug}
+                permissions={true}
+                readOnly={false}
+              />
+              <FormSubmit>{t('fields:saveChanges')}</FormSubmit>
+            </Form>
+          </OperationProvider>
+        )}
+      </Gutter>
     </Drawer>
   )
 }
