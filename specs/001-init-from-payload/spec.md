@@ -2,29 +2,37 @@
 
 **Feature Branch**: `specs/001-init-from-payload`
 **Created**: 2026-06-20
-**Status**: Draft — clarify 2026-06-20 (identity, commerce, monetization) + 2026-06-23 (member mirror, single-tenant, role source, real-time)
+**Status**: Draft — clarify 2026-06-20 / 2026-06-23 + **hygiene 2026-07-30** (Directus IdP only; auctions Wave-2)
 **Input**: User description: "вот форк (undrepost), нужно включить все фичи underblog и те, что мы планировали в 003"
 
 ---
 
 ## Overview
 
-`undrepost` is the rewritten content/social platform, founded as a **GitHub fork of `payloadcms/payload`** (currently `payload-monorepo` v4.0.0-beta.0). It replaces the legacy `underblog` (Next.js Pages Router + Prisma + NextAuth) by re-platforming every existing feature onto Payload-native primitives, then layering the social/commerce features planned in undrlla spec 003.
+`undrepost` is the rewritten content/social platform, founded as a **GitHub fork of `payloadcms/payload`** (base re-pinned 2026-11-19: upstream main `7a41086106` = 4.0.0-beta.10, synced before implement at T0.1 — see plan.md Phase 0). It replaces the legacy `underblog` (Next.js Pages Router + Prisma + NextAuth) by re-platforming every existing feature onto Payload-native primitives, then layering the social/commerce features planned in undrlla spec 003.
 
-**Foundation method** (ratified, corrected from 003): fork the upstream monorepo, track upstream via **Sync fork**, keep all customization in the **app/collection layer** so divergence stays small — identical to how `undrlla` is built as a fork of `medusajs/medusa`. Payload is "Medusa for content."
+**Foundation method**: fork the upstream monorepo, track via **Sync fork**, keep customization in the **app/collection layer**. Payload is the content engine; **undrlla is Directus** (not Medusa) for commerce + **ecosystem IdP**.
 
-**Bounded context**: `undrepost` owns CONTENT/SOCIAL. `undrlla` (Medusa) owns COMMERCE. Auction/giveaway _engines_ live in undrlla; undrepost surfaces them by reference via a typed contract.
+**Bounded context**: `undrepost` owns CONTENT/SOCIAL. `undrlla` (Directus) owns COMMERCE + **identity**. Auction/giveaway engines are **deferred** until undrlla defines them; undrepost MUST NOT invent money-state.
 
 ---
 
 ## Clarifications
 
+### Session 2026-07-23 (IdP fix — SpecKit review)
+
+- Q: What is the IdP? → **A: Flagship undrlla Directus users** (ECOSYSTEM.md). undrepost validates Directus JWT/session (or OIDC issued by Directus). **Obsolete:** Better-Auth / Medusa IdP assumptions.
+- Q: Member mirror? → Local `Members` mirror JIT-provisioned from Directus `user.id` on first login; authorship FKs to Members; undrlla remains authoritative identity.
+- Q: Auction/giveaway? → **Deferred** out of Wave-1. No undrlla auction FR exists post-Directus rebase. US9/US10 are non-blocking backlog.
+- Q: Wave-1 priority? → **P0:** posts, media, comments, auth. Reactions/emoji/polls/newsletter = P2 after P0 green.
+- Q: Chat? → Ecosystem MVP chat = **Telegram** (undrlla notifications); undrepost DMs post-MVP.
+
 ### Session 2026-06-23
 
-- Q: Does undrepost keep its own user records, and what do authorship relations reference? → A: A local `Members` **mirror** collection, JIT-provisioned from the undrlla IdP `sub` on first login (caches role + profile); all authorship/participation relations FK to it; undrlla remains the authoritative identity store.
-- Q: Is undrepost multi-tenant or single-tenant per instance? → A: Single-tenant per instance — one blog per deploy bound to one undrlla tenant via config; no `tenant_id`/RLS in collections; the IdP claim's `tenant_id` is validated against the bound tenant.
-- Q: Where does the blog admin/member role come from? → A: Resolved in undrepost via a config allowlist (IdP `sub` only) granting `admin` in the local Member mirror (bootstrap like legacy `ADMIN_SUBS`); default `member`. The IdP claim provides identity, not blog authorization.
-- Q: Do Wave-1 reaction/poll counts need live real-time, or optimistic+refetch? → A: Full multi-user SSE push from Wave 1 — undrepost builds its own SSE feed for social counts (auction real-time stays in undrlla). SSE MUST define heartbeat + reconnect/replay + connection limits.
+- Q: Does undrepost keep its own user records, and what do authorship relations reference? → A: A local `Members` **mirror** collection, JIT-provisioned from the undrlla IdP user id on first login (caches role + profile); all authorship/participation relations FK to it; undrlla remains the authoritative identity store. *(2026-07-23: IdP = Directus, not Better-Auth.)*
+- Q: Is undrepost multi-tenant or single-tenant per instance? → A: Single-tenant per instance — one blog per deploy bound to one undrlla tenant via config; no `tenant_id`/RLS in collections; the IdP claim's `tenant_id` is validated against the bound tenant when present.
+- Q: Where does the blog admin/member role come from? → A: Resolved in undrepost via a config allowlist (Directus user id) granting `admin` in the local Member mirror; default `member`.
+- Q: Do Wave-1 reaction/poll counts need live real-time, or optimistic+refetch? → A: SSE for social counts is **P2** (after posts+auth). SSE MUST define heartbeat + reconnect/replay + connection limits + JWT on connect.
 
 ---
 
@@ -47,7 +55,7 @@ As an **author**, I create, edit, draft/publish, and illustrate blog posts throu
 
 ### User Story 2 - Accounts, roles & admin (Priority: P1)
 
-As a **platform operator**, I have an admin panel with role-gated access (admin vs member) backed by **undrlla's shared Better-Auth IdP**, so one account works across marketplace + blog and content/users are manageable.
+As a **platform operator**, I have an admin panel with role-gated access (admin vs member) backed by **undrlla Directus identity (ecosystem IdP)**, so one account works across marketplace + blog.
 
 **Why this priority**: Auth + admin underpin every other feature.
 
@@ -134,11 +142,13 @@ As a **reader**, I subscribe to a newsletter; as an **admin**, I send issues to 
 
 ---
 
-### User Story 9 - Auction embedded in a post (Priority: P2)
+### User Story 9 - Auction embedded in a post (Priority: P3, DEFERRED)
+
+> **Scope (2026-07-23):** Deferred — no undrlla auction engine on Directus yet. Do not implement in Wave-1.
 
 As an **author**, I embed an auction in a post; readers bid inline; the auction **engine runs in undrlla**, undrepost only references and renders it.
 
-**Why this priority**: Committed to this init (full integration, chosen 2026-06-20). Depends on the undrlla contract + shared IdP, so it sequences after the content P1 core (see [Sequencing consequence](#-sequencing-consequence)).
+**Why this priority**: Depends on a future undrlla auction feature + shared IdP.
 
 **Independent Test**: Embed an `auctionRef` block in a post; the widget reads live state and submits a bid through the undrlla contract; no auction money-state is stored in undrepost.
 
@@ -149,7 +159,9 @@ As an **author**, I embed an auction in a post; readers bid inline; the auction 
 
 ---
 
-### User Story 10 - Giveaway (Priority: P2)
+### User Story 10 - Giveaway (Priority: P3, DEFERRED)
+
+> **Scope (2026-07-23):** Content-only giveaways MAY land after Wave-1 P0; paid/product giveaways wait on undrlla.
 
 As an **author**, I run a giveaway on a post; entry is content-side, winner selection runs where the prize lives (content-only → undrepost; product/paid → undrlla).
 
@@ -190,8 +202,10 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 
 - **FR-001**: undrepost MUST be founded as a GitHub fork of `payloadcms/payload`, tracked against upstream via Sync fork. Customizations MUST live in the app/collection layer; core packages MUST NOT be edited except via the escape-hatch ladder (plugin → component → upstream PR → patch-package → scoped fork-commit, recorded).
 - **FR-002**: The runtime core path MUST remain MIT-clean; proprietary logic stays closed without copyleft triggers.
-- **FR-003**: undrepost MUST NOT model commerce money-state (bids, payments, paid-subscription ledgers) in its own data layer; such state MUST live in undrlla and be reached via a typed contract.
-- **FR-004**: undrepost is **single-tenant per instance** — one deployment serves one blog bound to exactly one undrlla tenant via configuration. Collections MUST NOT carry `tenant_id` and MUST NOT implement per-row tenant isolation/RLS. The IdP claim's `tenant_id` MUST be validated against the instance's bound tenant on every authenticated request; a mismatch is rejected.
+- **FR-003**: undrepost MUST NOT model commerce money-state (bids, payments, paid-subscription ledgers) in its own data layer; such state MUST live in undrlla and be reached via a typed contract **when that contract exists**.
+- **FR-004**: undrepost is **single-tenant per instance** — one deployment serves one blog bound to exactly one undrlla tenant via configuration. Collections MUST NOT carry `tenant_id` and MUST NOT implement per-row tenant isolation/RLS. IdP claims MUST be validated against the bound tenant when present.
+- **FR-005**: Identity MUST use **undrlla Directus** as IdP (JWT/session validation). Member mirror keys off Directus user id. Better-Auth/Medusa IdP paths are forbidden.
+- **FR-006**: Wave-1 implement scope is posts + media + comments + auth (FR-005). Auction/giveaway UI MUST NOT ship until undrlla provides the engine contract (or content-only giveaway is explicitly re-scoped).
 
 ### Ported Features (parity with legacy underblog)
 
@@ -199,7 +213,7 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 - **FR-011**: Comments MUST support member authorship, soft-delete, and a **gating policy** (can-comment / rate-limit), preserving the legacy pluggable-gating behavior via Payload access control / hooks.
 - **FR-012**: Media uploads MUST use an S3-compatible storage adapter, preserving legacy storage behavior, via Payload's upload + storage adapter.
 - **FR-013**: The legacy **pluggable-adapter philosophy** (swappable Auth / Gating / Storage) SHOULD be preserved through Payload plugins/config so undrepost remains a reconfigurable "forkable starter," not a hardwired build.
-- **FR-014**: Authentication MUST delegate to **undrlla's Better-Auth as a shared IdP** from day one (OIDC/JWT) — one account spans marketplace + blog. undrepost is a relying party; Payload's admin + access control consume the undrlla-issued identity. (Chosen 2026-06-20; required by full embedded auctions, FR-030.) The Payload-native admin dashboard MUST role-gate on that identity. undrepost provisions a **local `Members` mirror** (JIT from the IdP `sub` on first login) as the relation target for authorship; it caches role + profile but is non-authoritative. **Blog roles are resolved in undrepost, not the IdP**: a config allowlist (IdP `sub` only — email matching is prohibited due to escalation risk) grants `admin` in the mirror (bootstrap, à la legacy `ADMIN_SUBS`); everyone else defaults to `member`. The IdP claim provides identity, not blog authorization. _Migration note: replaces legacy NextAuth._
+- **FR-014**: Authentication MUST delegate to **undrlla Directus native auth as the shared IdP** (OIDC/JWT per `undrlla/specs/003-sso-jwt-contract/005-sso-jwt-contract.md`; path corrected 2026-11-18 review F16). undrepost is a relying party; Payload admin + access control consume the undrlla-issued identity after full token validation (**signature via JWKS + `aud` + `iss` + `exp`**). **Forbidden:** Better-Auth, Medusa-as-IdP, or custom JWT minting in undrepost. undrepost provisions a **local `Members` mirror** (JIT from the IdP `sub` / Directus user id on first login) as the relation target for authorship; it caches role + profile but is non-authoritative. **Blog roles are resolved in undrepost, not the IdP**: a config allowlist (IdP `sub` only — email matching is prohibited due to escalation risk) grants `admin` in the mirror; everyone else defaults to `member`. The IdP claim provides identity, not blog authorization. **Post-login sessions are opaque server-side sessions** (HttpOnly cookie + server session record keyed to the validated Directus token — **not** locally-minted JWTs, so the minting prohibition stands); session TTL / revocation-latency parameters are authoritative in `contracts/members.contract.md` §Session Bridge (dedupe 2026-11-19, analyze D1). Identity is re-validated at login only, so an IdP outage does not kill active sessions — the Wave-1 availability claim holds by construction. (Session bridge added 2026-11-18, review F4.) _Migration note: replaces legacy NextAuth and any Better-Auth wording from 2026-06-20._
 
 ### New Features (planned in 003)
 
@@ -210,26 +224,29 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 
 ### Commerce Integration (undrlla boundary)
 
-- **FR-030**: Auctions MUST be **fully integrated in this init** (chosen 2026-06-20): a live `auctionRef` widget reads auction state and submits bids through the typed undrlla contract in real time. The auction engine (bids, ACID validation, payment, close, winner) runs in undrlla; undrepost stores no money-state. Requires the shared IdP (FR-014) and a working undrlla auction engine + contract (see Dependencies — **not built in undrlla yet**).
-- **FR-031**: Giveaways MUST be **fully integrated in this init**: entry on the content side; winner selection runs where the prize lives (content-only prize → undrepost; product/paid prize → undrlla via the contract).
-- **FR-032**: Membership / paid subscription is **OUT OF SCOPE for init** (chosen 2026-06-20). Init ships **free accounts + newsletter** only; paid membership/subscription is deferred to a later spec (billing would route through undrlla). This does not affect auction payments, which flow through undrlla per FR-030.
+- **FR-030**: Auctions are **Wave-2 / backlog** (hygiene 2026-07-30). A future `auctionRef` widget MAY read auction state and submit bids through a typed undrlla contract when that engine exists. The auction engine (bids, ACID validation, payment, close, winner) MUST run in undrlla; undrepost stores no money-state. **Wave-1 MUST NOT** require, implement, or gate release on undrlla auctions. Aligns with Session 2026-07-23 clarifications and FR-006.
+- **FR-031**: Giveaways: **content-only** entry/winner selection MAY ship in Wave-1 (no money-state). **Product/paid** giveaways are Wave-2 and require an undrlla contract — not a Wave-1 release gate.
+- **FR-032**: Membership / paid subscription is **OUT OF SCOPE for init** (chosen 2026-06-20). Init ships **free accounts + newsletter** only; paid membership/subscription is deferred to a later spec (billing would route through undrlla).
 
 ### Functional Requirements (cross-cutting)
 
 - **FR-040**: All inbound mutations MUST validate input (Zod or Payload field validation) and return typed errors, preserving the legacy `withErrorHandler` discipline.
 - **FR-041**: Structured logging (pino-style) with context MUST be retained; no secrets in logs.
 - **FR-042**: Real-time surfaces MUST update without full reload (SSE). **Reaction/poll counts use undrepost's own SSE feed from Wave 1** (multi-user live push); auction real-time originates in undrlla (Wave 2). undrepost's SSE MUST define a reliability contract: heartbeat, reconnect with `Last-Event-ID` replay (or snapshot-on-connect), and a per-instance connection limit.
-- **FR-043**: All rendered user-generated content (rich-text post bodies, comment bodies, custom emoji) MUST be output-sanitized (DOMPurify or equivalent) before rendering to prevent stored-XSS. Custom emoji uploads (especially SVG) MUST be sanitized or restricted to raster formats. This is the output counterpart to FR-040 (input validation).
+- **FR-043**: All rendered user-generated content (rich-text post bodies, comment bodies, custom emoji) MUST be output-sanitized (DOMPurify or equivalent) before rendering to prevent stored-XSS. Custom emoji uploads (especially SVG) MUST be sanitized or restricted to raster formats. Admin emoji uploads attest rights to third-party imagery (commercial-SKU exposure; fix 2026-11-18 review F20). This is the output counterpart to FR-040 (input validation).
 - **FR-044**: SSE endpoints MUST require authentication (valid membership token). Unauthenticated SSE connections MUST be rejected at the transport layer. Per-user connection limits (in addition to per-IP) MUST be enforced to prevent single-user fan-out abuse.
+- **FR-045 (Social Multi-Platform Auto-Poster)**: System MUST provide an automated social distribution hook system (Social Adapters) allowing published Posts to automatically syndicate to external platforms (Telegram channel bot, X/Twitter API thread, LinkedIn / Habr webhook), keeping `undrepost` as the single headless content engine. **Wave-1 scope (fix 2026-11-18 review F6 — the $149 SKU headline):** adapter interface + `SyndicationLog` (dedup/retry) + Telegram adapter ship in Wave 1 (P2 lane); X/LinkedIn adapters follow. Adapters are isolated modules with graceful fallback (business-plan FM-02); a platform-API failure MUST NOT fail the publish itself — the post renders locally and the syndication failure is logged for retry.
+- **FR-046 (Crowdfunded / Pooled Q&A Engine, post-Wave-1)**: System MAY support a `QuestionPool` collection where readers submit expert questions and pledge bounty funds — **the pledge ledger and threshold MUST live in undrepay, never in undrepost** (money-state boundary per FR-003; fix 2026-11-18 review F5). undrepost stores the question + `status: open → funded` flipped by an undrepay webhook (no separate boolean — analyze U2); contract of record: `undrepay/INTEGRATION.md`. When undrepay reports the pool funded, the author is notified to record an answer; answers publish as public `Posts` in `undrepost` and syndicate via FR-045 (premium/private-answer handling, if ever offered, is an undrepay-side product out of undrepost scope — drift note 2026-11-19, analyze U1). **TG Stars is not an approved rail** (ToS risk — ecosystem research 2026-11-15) unless separately re-approved. Gated on the undrepay integration contract being live.
 
 ### Waves (delivery sequencing)
 
-- **Wave 1** (content MVP): Posts, Comments (+ gating), Reactions, Custom Emoji, Polls, Newsletter, SSE for social counts, Members mirror, Admin. Ships standalone value. Functions fully if undrlla is temporarily unavailable (except IdP login — see Dependencies).
+- **Wave 1** (content MVP): Posts, Comments (+ gating), Reactions, Custom Emoji, Polls, Newsletter, SSE for social counts, Members mirror, Admin, Social Adapters (FR-045: adapter interface + Telegram first). Ships standalone value. Functions fully if undrlla is temporarily unavailable — only **new IdP logins** fail; active sessions survive via the local session bridge (FR-014, fix 2026-11-18 review F4). **Sequencing inside Wave 1** (reconciles FR-006 with clarify 2026-07-23, fix 2026-11-18 review F8): **P0 = posts, media, comments, auth (FR-006)** ships first; **P2 = reactions, custom emoji, polls, newsletter, SSE, social adapters** starts only after P0 is green.
 - **Wave 2** (commerce integration): Auctions (FR-030), product/paid Giveaways (FR-031 winner delegation via undrlla contract). Gated on undrlla readiness. Wave-2 features are additive to a shipped Wave-1 product.
+- **Post-Wave-1** (undrepay-gated): FR-046 QuestionPool status-mirror (T2.19) — lands when the undrepay integration contract is live (added 2026-11-19, analyze I1).
 
 ### Key Entities (Payload collections unless noted)
 
-- **Member** (local IdP mirror): keyed by undrlla IdP `sub` (unique), JIT-provisioned on first login; caches role (admin/member) + profile; non-authoritative (undrlla holds identity, FR-014). **All authorship/participation relations FK to `Member`** (Post.author, Comment.author, Reaction.author, PollVote.member). (legacy `User`)
+- **Member** (local IdP mirror): keyed by undrlla Directus user id / IdP `sub` (unique), JIT-provisioned on first login; caches role (admin/member) + profile; non-authoritative (undrlla holds identity, FR-005/FR-014). **All authorship/participation relations FK to `Member`** (Post.author, Comment.author, Reaction.author, PollVote.member). (legacy `User`)
 - **Post**: title, slug, rich-text body, cover image, status. (legacy `BlogPost`)
 - **Comment**: body, author, post, soft-delete (`deletedAt`). (legacy `Comment`)
 - **Media**: S3-backed upload. (legacy `MediaFile`)
@@ -255,16 +272,16 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 ## Assumptions
 
 - **Greenfield rewrite**: no production data migration from legacy underblog assumed; legacy schema (Prisma models) is a _mapping reference_ for the new Payload collections, not a data source.
-- Foundation is **Payload v4-beta** per the actual fork (`payload-monorepo` 4.0.0-beta.0). Beta churn is accepted and absorbed via Sync-fork discipline.
+- Foundation is **Payload v4-beta** per the actual fork (`payload-monorepo` 4.0.0-beta.10+, pinned at T0.1). Beta churn is accepted and absorbed via Sync-fork discipline. Beta.0 spec assumptions re-verified against beta.10 (`7a41086106`, 2026-11-19): auth seam `disableLocalStrategy` + `strategies?: AuthStrategy[]` intact (`packages/payload/src/auth/types.ts:269,348`).
 - Rich text migrates from TipTap to Payload's native editor (Lexical) unless a hard reason to keep TipTap emerges.
-- The blog app lives inside the fork (exact location — `apps/`, `templates/`, or root `app/` — is a plan-stage decision).
-- undrlla is the commerce + (optionally) identity backbone; the two integration seams (control-plane provisioning, runtime auction contract) are per the pending bounded-context ADR.
+- The blog app lives inside the fork at **`apps/undrepost/`** (resolved 2026-11-18, review F15: new top-level pnpm workspace — upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction). Re-checked on beta.10 (2026-11-19): upstream now tracks singular `app/` + `app-tanstack/` dev apps — `apps/` still absent, collision surface still zero.
+- undrlla (Directus) is the **identity** backbone for undrepost; **client commerce** SoT is Medusa (`undreseller`) per ecosystem Q8–Q9 — undrepost does not own shop money-state. Auction contract is Wave-2 only.
 
 ## Dependencies
 
-- **undrlla Better-Auth IdP** — **HARD** dependency (FR-014): identity from day one. undrlla must expose an OIDC/JWT IdP endpoint before undrepost auth is functional.
-- **undrlla auction engine + typed contract** — **HARD** dependency (FR-030/031): full auction/giveaway integration. ⚠️ The auction engine does **not exist in undrlla yet** — it must be built there first (separate spec). The auction parts of this init BLOCK on it.
-- The corrected foundation decision (fork payloadcms/payload), originally drafted as undrlla spec 003.
+- **undrlla Directus IdP** — **HARD** dependency (FR-005 / FR-014): identity from day one. undrlla must expose JWT/OIDC + JWKS (see `undrlla/specs/003-sso-jwt-contract/005-sso-jwt-contract.md`; canonical ecosystem `aud` includes `undrepost` per §3.2/§3.3 as of the 2026-11-18 amendment) before undrepost auth is functional.
+- **undrlla auction engine + typed contract** — **SOFT / Wave-2 only** (FR-030/031 product/paid path). Not required for Wave-1 content MVP release.
+- The corrected foundation decision (fork payloadcms/payload).
 - Payload v4-beta upstream.
 
 ## Out of Scope
@@ -273,27 +290,30 @@ As the **maintainer**, I pull upstream Payload releases via Sync fork with minim
 - The auction/giveaway **engine** implementation (lives in undrlla; separate spec).
 - undrepost **hosting/provisioning** by undrlla as a sold product (control-plane seam; separate spec).
 - Multi-tenant density model (later phase).
-- Detailed undrepost↔undrlla contract schema (separate contract artifact).
+- Detailed undrepost↔undrlla **auction** contract schema (Wave-2 artifact).
+- Better-Auth or Medusa as IdP.
 
 ---
 
-## Resolved Decisions (clarify 2026-06-20)
+## Resolved Decisions
 
-1. **Identity** (FR-014) → **undrlla Better-Auth IdP from day one** (shared account, marketplace + blog).
-2. **Commerce depth** (FR-030/031) → **full auction + giveaway integration now** (live widget + undrlla contract).
+### clarify 2026-06-20 (historical) — **superseded where noted**
+
+1. **Identity** → shared undrlla IdP from day one. **2026-07-23/30:** IdP = **Directus native**, not Better-Auth.
+2. **Commerce depth** → **2026-07-30:** auctions/product giveaways = **Wave-2 backlog**, not init MUST.
 3. **Monetization** (FR-032) → **out of scope for init** (free accounts + newsletter; paid membership later).
 
-### ⚠️ Sequencing consequence
+### Sequencing (hygiene 2026-07-30)
 
-Choices 1 + 2 make undrepost init a **hard downstream of undrlla**: undrepost cannot fully ship until undrlla exposes (a) a Better-Auth IdP endpoint and (b) a working auction engine + typed contract — the auction engine is not built yet.
+Wave-1 content MVP **ships without** undrlla auction readiness. Hard dependency is **Directus IdP only**. Auction tasks (T2.13–T2.16) are **out of critical path** / deferred until undrlla defines an auction FR.
 
-Decision (per project lead selection): this spec commits to integrating auctions in this init (FR-030 remains a MUST). Therefore the release is explicitly blocked until undrlla readiness is confirmed and cross-repo contract integration tests pass.
+Release gates for Wave-1:
 
-Operational actions introduced by this decision:
-
-- Add cross-repo integration tasks to `tasks.md` (T2.13..T2.16) covering contract finalization, adapter implementation, staging integration, and contract e2e tests.
-- Add release-gate tasks (T4.4, T4.5) for schema-audit (no money-state) and license/compliance checks.
-- The final GA release requires an undrlla-ready signal (staging endpoint + contract health) and passing contract integration tests before merge/release.
+- Schema audit: no commerce money-state (T4.4)
+- License/compliance (T4.5)
+- Directus JWT validation (sig/aud/iss/exp) + Members JIT
+- **Not** undrlla auction staging handshake — **including final Wave-1 GA** (fix 2026-11-18, review F1: the previous "final GA requires undrlla-ready signal" bullet resurrected the pre-hygiene blocking gate inside this same list and contradicted plan.md "no auction gate")
+- **Wave-2 only**: an undrlla-ready signal (staging endpoint + contract health) + passing contract integration tests (T2.15) gate the **auction release**, not Wave-1.
 
 Notes:
 

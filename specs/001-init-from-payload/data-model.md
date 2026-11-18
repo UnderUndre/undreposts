@@ -89,6 +89,26 @@ Collections
   - `createdAt`, `confirmedAt`, `unsubscribedAt`
   - Indexes: `email` (unique), `confirmToken`, `unsubToken`
 
+- SyndicationLog (FR-045, added 2026-11-18 review F6)
+
+  - `id` (UUID)
+  - `post` (relation -> Posts)
+  - `channel` (enum) — telegram|x|linkedin|habr
+  - `status` (enum) — pending|sent|failed
+  - `externalRef` (string, nullable) — platform message/post id
+  - `error` (text, nullable)
+  - `createdAt`
+  - Indexes: `(post, channel)`, `status` — retry-safe dedup: exactly one `sent` per (post, channel)
+
+- QuestionPool (FR-046, post-Wave-1, added 2026-11-18 review F5)
+
+  - `id` (UUID)
+  - `question` (text)
+  - `askedBy` (relation -> Members)
+  - `status` (enum) — open|funded|answered; `funded` set by an undrepay webhook; **pledge ledger and threshold live in undrepay, NOT here** (FR-003 money-state boundary). Single state encoding — no separate boolean (analyze U2).
+  - `answerPost` (relation -> Posts, nullable) — set when the author answers
+  - Indexes: `status`
+
 - GiveawayRef
 
   - `id` (UUID)
@@ -118,4 +138,4 @@ Relations & FK rules
 
 - All authorship and participation FKs reference `Members.id` (mirror). If a Member does not exist, JIT-provision from IdP before completing write operations.
 - Comments are member-only — no anonymous author (FR-011 gating requires membership).
-- If a Member is deleted upstream (undrlla-side), local mirror record is retained as a tombstone (displayName → "[deleted]") to preserve authored-content integrity. FKs remain valid.
+- If a Member is deleted upstream (undrlla-side), local mirror record is retained as a tombstone (displayName → "[deleted]") to preserve authored-content integrity. FKs remain valid. Applied by the daily sweep (T2.20) comparing mirror `sub`s against IdP active users — login re-sync alone never reaches deleted users (fix 2026-11-18 review F11).

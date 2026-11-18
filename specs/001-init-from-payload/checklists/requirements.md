@@ -32,6 +32,6 @@
 ## Notes
 
 - **Three `[~]` items are intentional deviations** (init/re-platforming spec cannot be framework-agnostic), consistent with `undrlla/specs/002` and `003`. Not defects.
-- **Clarify resolved 3 decisions (2026-06-20)**: identity → undrlla IdP from day one; commerce → full auction+giveaway now; monetization → out of init.
-- **⚠️ Key risk flagged in-spec**: choices 1+2 make init a hard downstream of undrlla (IdP + auction engine), and the auction engine is **not built in undrlla yet**. Spec recommends a two-wave split (content MVP standalone → commerce gated on undrlla). Resolve sequencing at `/speckit.plan`.
-- Ready for `/speckit.plan` (or `/speckit.full-plan`).
+- **Clarify (2026-06-20 + hygiene 2026-07-30)**: identity → **Directus IdP** from day one; commerce auctions → **Wave-2 backlog** (not init MUST); monetization → out of init.
+- **Wave-1 risk**: hard dependency is Directus JWT/JWKS only — not auction engine. Re-run `/speckit.analyze` after hygiene to clear historical CRITICAL on FR-030.
+- Ready for Wave-1 implement gate after re-analyze + external reviews (content MVP).

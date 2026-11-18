@@ -4,7 +4,7 @@ Feature branch: `specs/001-init-from-payload`
 
 ## Summary
 
-This plan implements the `undrepost` migration: fork `payload` (payload-monorepo v4.0.0-beta.0), re-platform legacy `underblog` features onto Payload collections, and add the social features and contracts described in the spec.
+This plan implements the `undrepost` migration: fork `payload` (payload-monorepo; base pinned at T0.1 to upstream main = 4.0.0-beta.10 `7a41086106`, 2026-11-19 — beta.0 → beta.10 is 850 upstream commits, sync-before-implement decided), re-platform legacy `underblog` features onto Payload collections, and add the social features and contracts described in the spec.
 
 Primary goals
 
@@ -16,7 +16,7 @@ Primary goals
 ## Technical Context
 
 - Platform: PayloadCMS forked monorepo (app/collection layer customizations).
-- Identity: undrlla IdP is authoritative; undrepost maintains a local `Members` mirror created on first login using IdP `sub` claim and caching role/profile. Re-synced on every login.
+- Identity: **undrlla Directus** IdP is authoritative (JWT/JWKS per ecosystem `005`); undrepost maintains a local `Members` mirror created on first login using IdP `sub` / Directus user id and caching role/profile. Re-synced on every login. **Not** Better-Auth.
 - Tenancy: Single-tenant per deploy (validate IdP claim `tenant_id` against instance config).
 - Real-time: SSE endpoint for social counts. Backend holds counts and publishes deltas; clients subscribe to updates for optimistic UI.
 
@@ -26,6 +26,14 @@ Primary goals
 - JIT provisioning endpoint: on successful OIDC login + full token validation (signature/aud/iss/exp), upsert mirrored Member record. ON CONFLICT semantics for concurrency safety.
 - SSE design: authenticated endpoint, heartbeat pings, reconnection with replay token (per-feed last-seq), and connection limits per user + per IP.
 - Audit & roles: Bootstrap admin by `sub` allowlist only (no email matching — security risk per review). Validate against IdP claim.
+
+## Auth & Session Architecture (added 2026-11-18, review F4/F10)
+
+- **Login**: OIDC authorization-code + PKCE against `id.undrlla.network` → 5-check token validation (members.contract.md) → JIT upsert → **opaque server-side session**: HttpOnly `__Secure-undrepost-session` cookie + session record (256-bit random id) referencing the Member. **No locally-minted JWT** — FR-014's prohibition covers JWTs and is not violated by an opaque session. Session TTL / revocation-latency trade-off: authoritative values in `contracts/members.contract.md` §Session Bridge (D1 dedupe, 2026-11-19).
+- **Subsequent requests** (public front-end, SSE, admin): session cookie validated against the session store; identity served from the local Member mirror — no per-request IdP call.
+- **Payload Admin**: custom auth strategy validating the same session (spike T1.5 verifies the v4-beta strategy API; fallback = middleware guard on `/admin`). Admin bootstrap via `sub` allowlist unchanged.
+- **IdP outage behavior**: JWKS cached (TTL 1h) with last-known-good fallback for signature verification; active sessions unaffected (login-time validation only); new logins fail 503 with a user-facing message. The Wave-1 availability claim (spec Waves) holds by construction.
+- **IdP-deleted members**: daily sweep (T2.20) compares mirror `sub`s against IdP active users and applies tombstones — login re-sync alone never reaches deleted users (review F11).
 
 ## Deliverables / Artifacts
 
@@ -41,8 +49,10 @@ Phase 0 — Research & scaffolding (2.5–3.5 days)
 
 - Validate upstream Payload version and fork strategy.
 - Pin beta build, document rebase/patch points, track stable tag (T0.3).
-- Create repo worktree, branch `specs/001-init-from-payload`.
-- Generate skeleton collections and minimal app/collection layer.
+- IdP contract-conformance spike (T0.4): mint a staging Directus token, run the full 5-check validator incl. JWKS/RS256 — proves the aud interlock before T1.3 builds on it.
+- Create repo worktree, branch `specs/001-init-from-payload` (branch renamed from `spec/…` to the constitution `specs/` convention, 2026-11-18).
+- **Blog app location (pinned 2026-11-18, review F15): `apps/undrepost/`** — a new top-level pnpm workspace; upstream payload-monorepo has no `apps/` dir, so the Sync-fork collision surface is zero by construction. SC-003/SC-004 conflict claims now reference this path. Re-checked on beta.10 (2026-11-19): upstream tracks singular `app/` + `app-tanstack/` dev apps — `apps/` still absent. **Base pin (T0.1)**: fork `main` fast-forwards to upstream main `7a41086106` (4.0.0-beta.10) before implement; `pnpm-workspace.yaml` on beta.10 uses an explicit templates list + `catalog` (TS7 native) instead of the beta.0 `templates/*` glob — record both shapes plus the `apps/*` addition as rebase/patch points (T0.3, review F7).
+- Generate skeleton collections and minimal app/collection layer under `apps/undrepost/`.
 
 Phase 1 — Core collections & identity (3.5–5.5 days)
 
@@ -57,11 +67,14 @@ Phase 2 — Social features & SSE (5–7 days)
 - Implement SSE feed service: authenticated endpoint, counts, playback/replay, heartbeat.
 - Async materialized counters with periodic reconciliation job.
 - Output sanitization (DOMPurify) for rendered content.
+- Social adapter interface + Telegram adapter + SyndicationLog (FR-045, P2 lane); QuestionPool status-mirror (FR-046, post-Wave-1, gated on undrepay contract).
+- Member tombstone sweep job (daily, T2.20).
+- Metrics emission alongside structured logging (T2.10, analyze O1): SSE delivery latency, counter reconciliation drift, JIT provisioning outcomes, syndication send status.
 
-Commerce integration & release gate
+Commerce integration (Wave-2 — **not** Wave-1 release gate)
 
-- Per project decision, auctions are a MUST for this init (FR-030) and therefore the release is gated on undrlla readiness. Cross-repo integration tasks are added in `tasks.md` (T2.13..T2.16) to finalize the auction contract, implement the `AuctionRef` adapter, provision staging handshakes, and run contract e2e tests.
-- The final GA release requires an undrlla-ready staging endpoint and passing contract integration tests; early content work may proceed, but the release pipeline will verify the undrlla signal before merging release artifacts.
+- Hygiene 2026-07-30: FR-030 auctions and product/paid giveaways are **deferred**. Wave-1 GA does **not** require undrlla auction staging or T2.13–T2.16.
+- When undrlla defines an auction FR, promote T2.13–T2.16 from backlog and re-open a Wave-2 feature slug.
 
 SSE reliability defaults (to be tuned in plan):
 
@@ -70,6 +83,11 @@ SSE reliability defaults (to be tuned in plan):
 - Replay miss behavior: if `Last-Event-ID` is older than the 100-event window, send a `snapshot` event (current state) followed by live deltas. Client catches up via snapshot, no silent gap.
 - Connection caps: 5,000 concurrent connections per instance with per-user limit (5 sessions) and per-IP soft-limit at 50 connections and a backpressure policy.
 - Authentication: SSE endpoint requires valid token (membership). Unauthenticated SSE is rejected at the transport layer — no anonymous subscription.
+
+Comment gating & newsletter defaults (tunable config, added 2026-11-18 review F12):
+
+- Comment gating default: confirmed member + 10 comments/hour/member (Redis-backed sliding counter); rejection returns a user-facing message, never a silent drop.
+- Newsletter transport: Resend (DKIM/SPF on the instance sending domain); bounce webhook → auto-unsubscribe; send retry ×3 exponential backoff; unsubscribe single-use idempotent.
 
 Storage & infra tasks added:
 
@@ -102,7 +120,7 @@ Phase 4 — Hardening & release (2–4 days)
 
 - Upstream drift: Keep customization confined to `app/collection` layer; document patch points and rebase strategy. Pin beta build + track stable tag (T0.3).
 - Identity mismatch: Validate claims (sig/aud/iss/exp) and include an audit log for JIT provisioning; fail-fast on tenant mismatch. Admin bootstrap by `sub` only.
-- SSE scale: Start with in-process SSE for Wave 1; add redis/pubsub if load increases. Per-user connection limit prevents single-user fan-out abuse.
+- SSE scale: in-process pubsub for single-node dev; Redis/pubsub provisioned for staging/prod (T2.7). Per-user connection limit prevents single-user fan-out abuse. Metrics (T2.10) expose delivery latency and connection counts.
 - XSS: DOMPurify sanitization on rendered rich text/comments; SVG-safe emoji handling (T2.13b).
 
 ## Constitution Check
@@ -117,11 +135,14 @@ Product-specific concerns (payment boundary, PII handling, auth posture) are gov
 
 ## Next steps
 
-1. Create the collections and JIT endpoint skeleton (`Members`, `Posts`).
-2. Implement identity flow & admin bootstrap (`sub` only).
-3. Build Reaction counters (async + reconciler) and SSE proof-of-concept.
-4. Coordinate with undrlla to finalize auction contract and staging integration (T2.13..T2.16), then run contract integration e2e (T2.15).
-5. Run integration tests and basic load test on SSE.
+1. Run T0.4 IdP contract-conformance spike (5-check validator vs a staging-minted token incl. JWKS/RS256).
+2. Create the collections and JIT endpoint skeleton (`Members`, `Posts`) under `apps/undrepost/`.
+3. Implement **Directus** identity flow: T1.5 session bridge + admin bootstrap (`sub` only; JWKS validation).
+4. Build Reaction counters (async + reconciler), SSE feed, and the social adapter interface + Telegram adapter (T2.17).
+5. Wave-1 release: schema money-state audit + license check + metrics emission — **no** auction gate.
+6. Run integration tests and basic load test on SSE.
+7. (Post-Wave-1) T2.19 QuestionPool status-mirror when undrepay `INTEGRATION.md` is live.
+8. (Later / Wave-2) Auction contract + T2.13–T2.16 when undrlla engine exists.
 
 ---
 
