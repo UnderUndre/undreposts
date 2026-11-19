@@ -260,6 +260,64 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
 
+  apps/undrepost:
+    dependencies:
+      '@payloadcms/db-postgres':
+        specifier: workspace:*
+        version: link:../../packages/db-postgres
+      '@payloadcms/next':
+        specifier: workspace:*
+        version: link:../../packages/next
+      '@payloadcms/plugin-seo':
+        specifier: workspace:*
+        version: link:../../packages/plugin-seo
+      '@payloadcms/richtext-lexical':
+        specifier: workspace:*
+        version: link:../../packages/richtext-lexical
+      '@payloadcms/transformer-sharp':
+        specifier: workspace:*
+        version: link:../../packages/transformer-sharp
+      '@payloadcms/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      cross-env:
+        specifier: 10.1.0
+        version: 10.1.0
+      dotenv:
+        specifier: 16.4.7
+        version: 16.4.7
+      graphql:
+        specifier: 16.8.1
+        version: 16.8.1
+      jose:
+        specifier: 6.2.12
+        version: 6.2.12
+      next:
+        specifier: 16.4.6
+        version: 16.4.6(@babel/core@7.29.7(supports-color@10.2.2))(@opentelemetry/api@1.10.0)(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1)
+      payload:
+        specifier: workspace:*
+        version: link:../../packages/payload
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: 24.12.3
+        version: 24.12.3
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: npm:@typescript/typescript6@6.0.2
+        version: '@typescript/typescript6@6.0.2'
+
   packages/admin-bar:
     dependencies:
       react:
@@ -2384,7 +2442,7 @@ importers:
         version: link:../packages/email-resend
       '@payloadcms/figma':
         specifier: latest
-        version: 1.0.0-beta.1(@payloadcms/plugin-cloud-storage@packages+plugin-cloud-storage)(@payloadcms/richtext-lexical@packages+richtext-lexical)(@payloadcms/translations@packages+translations)(@payloadcms/ui@packages+ui)(payload@packages+payload)(react@19.3.1)
+        version: 1.0.0-beta.2(@payloadcms/plugin-cloud-storage@packages+plugin-cloud-storage)(@payloadcms/richtext-lexical@packages+richtext-lexical)(@payloadcms/translations@packages+translations)(@payloadcms/ui@packages+ui)(payload@packages+payload)(react@19.3.1)
       '@payloadcms/graphql':
         specifier: workspace:*
         version: link:../packages/graphql
@@ -6713,15 +6771,15 @@ packages:
     resolution: {integrity: sha512-7FNeNl8NCE7aINx7WXiKQrPYZWC/hvrTsmk6zmxbI7LTXE7hVek/n8AfVgpe2y82zl3w0HvCHN0bVKMBoJcC0w==}
     engines: {node: '>= 10.0.0'}
 
-  '@payloadcms/figma@1.0.0-beta.1':
-    resolution: {integrity: sha512-C2XcRfqqU69V/+Nb4PU08ikRJs9AezERrrcoEPfsPkUSQW6bcAhzu5QgCEnrlNf4Ndire8ScOD2unlAf/Fg1kw==}
+  '@payloadcms/figma@1.0.0-beta.2':
+    resolution: {integrity: sha512-G25gRKvFLvFDnAvKJ1mkBlGTntAvAMfYjMJ2T+qqzXKMsndXfIikzRVP3GYTVbKixo4U6m76WIMtojElkweciQ==}
     hasBin: true
     peerDependencies:
-      '@payloadcms/plugin-cloud-storage': '>=4.0.0-beta.0 <4.0.0-internal'
-      '@payloadcms/richtext-lexical': '>=4.0.0-beta.0 <4.0.0-internal'
-      '@payloadcms/translations': '>=4.0.0-beta.0 <4.0.0-internal'
-      '@payloadcms/ui': '>=4.0.0-beta.0 <4.0.0-internal'
-      payload: '>=4.0.0-beta.0 <4.0.0-internal'
+      '@payloadcms/plugin-cloud-storage': '>=4.0.0-beta.8 <4.0.0-internal'
+      '@payloadcms/richtext-lexical': '>=4.0.0-beta.8 <4.0.0-internal'
+      '@payloadcms/translations': '>=4.0.0-beta.8 <4.0.0-internal'
+      '@payloadcms/ui': '>=4.0.0-beta.8 <4.0.0-internal'
+      payload: '>=4.0.0-beta.8 <4.0.0-internal'
       react: 19.3.1
     peerDependenciesMeta:
       '@payloadcms/plugin-cloud-storage':
@@ -15085,11 +15143,6 @@ packages:
   util-extend@1.0.3:
     resolution: {integrity: sha512-mLs5zAK+ctllYBj+iAQvlDCwoxU/WDOUaJkcFudeiAX6OajC6BKXJUa9a+tbtkC11dz2Ufb7h0lyvIOVn4LADA==}
 
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
-    hasBin: true
-
   uuid@14.0.0:
     resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
@@ -19809,7 +19862,7 @@ snapshots:
       '@parcel/watcher-win32-x64': 2.6.0
     optional: true
 
-  '@payloadcms/figma@1.0.0-beta.1(@payloadcms/plugin-cloud-storage@packages+plugin-cloud-storage)(@payloadcms/richtext-lexical@packages+richtext-lexical)(@payloadcms/translations@packages+translations)(@payloadcms/ui@packages+ui)(payload@packages+payload)(react@19.3.1)':
+  '@payloadcms/figma@1.0.0-beta.2(@payloadcms/plugin-cloud-storage@packages+plugin-cloud-storage)(@payloadcms/richtext-lexical@packages+richtext-lexical)(@payloadcms/translations@packages+translations)(@payloadcms/ui@packages+ui)(payload@packages+payload)(react@19.3.1)':
     dependencies:
       '@clack/prompts': 0.11.0
       '@cloudflare/workers-types': 5.20260716.1
@@ -19837,7 +19890,6 @@ snapshots:
       tar: 7.5.22
       terminal-link: 5.0.0
       ts-morph: 21.0.1
-      uuid: 10.0.0
     optionalDependencies:
       '@payloadcms/plugin-cloud-storage': link:packages/plugin-cloud-storage
       '@payloadcms/richtext-lexical': link:packages/richtext-lexical
@@ -29584,8 +29636,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   util-extend@1.0.3: {}
-
-  uuid@10.0.0: {}
 
   uuid@14.0.0: {}
 

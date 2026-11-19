@@ -1,0 +1,9 @@
+.env
+.next
+node_modules
+media
+payload-types.ts.bak
+*.tsbuildinfo
+next-env.d.ts
+/dist
+.DS_Store

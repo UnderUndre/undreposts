@@ -1,0 +1,39 @@
+{
+  "name": "undrepost",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Undrepost — sovereign headless blog + social distribution on Payload (spec 001-init-from-payload)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" payload build",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "workspace:*",
+    "@payloadcms/next": "workspace:*",
+    "@payloadcms/plugin-seo": "workspace:*",
+    "@payloadcms/richtext-lexical": "workspace:*",
+    "@payloadcms/transformer-sharp": "workspace:*",
+    "@payloadcms/ui": "workspace:*",
+    "cross-env": "catalog:",
+    "dotenv": "catalog:",
+    "graphql": "16.8.1",
+    "jose": "6.2.12",
+    "next": "16.4.6",
+    "payload": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "catalog:"
+  }
+}
