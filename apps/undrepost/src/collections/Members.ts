@@ -22,6 +22,11 @@ const authMode =
 export const Members: CollectionConfig = {
   slug: 'members',
   access: {
+    // Auth collections default to authenticated-only reads, which breaks public
+    // author population (Posts.author → members). Public reads are required for
+    // authorship attribution (displayName/avatar/bio); PII fields (sub, email,
+    // roles) are restricted via field-level access below.
+    read: () => true,
     // Roles are admin-domain state: only admins may grant/revoke.
     delete: isAdmin,
     update: ({ req }) => Boolean(req.user),
@@ -34,8 +39,21 @@ export const Members: CollectionConfig = {
   auth: authMode,
   fields: [
     {
+      // Overrides the implicit auth-collection email field: PII — never served
+      // to anonymous requests (contract: email is PII, redacted from logs).
+      name: 'email',
+      type: 'email',
+      access: {
+        read: ({ req }) => Boolean(req.user),
+      },
+    },
+    {
       name: 'sub',
       type: 'text',
+      access: {
+        // PII: identity key — never served to anonymous requests.
+        read: ({ req }) => Boolean(req.user),
+      },
       admin: {
         description: 'undrlla subject — authoritative identity key (UNIQUE, DB-enforced).',
         readOnly: true,
@@ -53,6 +71,8 @@ export const Members: CollectionConfig = {
       type: 'select',
       access: {
         create: isAdmin,
+        // Roles are authorization state — never exposed to anonymous requests.
+        read: ({ req }) => Boolean(req.user),
         update: isAdmin,
       },
       defaultValue: ['member'],

@@ -74,6 +74,29 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   upload: {
-    transformers: [sharpTransformer()],
+    // Beta.10 transformer API: sizes are authored per-collection via the
+    // transformer (upload.imageSizes was removed in Payload 4.0).
+    transformers: [
+      sharpTransformer({
+        collections: {
+          media: {
+            variants: [
+              {
+                name: 'thumbnail',
+                height: 300,
+                position: 'centre',
+                width: 400,
+              },
+              {
+                name: 'og',
+                height: 630,
+                position: 'centre',
+                width: 1200,
+              },
+            ],
+          },
+        },
+      }),
+    ],
   },
 })

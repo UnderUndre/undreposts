@@ -22,20 +22,6 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    imageSizes: [
-      {
-        name: 'thumbnail',
-        height: 300,
-        position: 'centre',
-        width: 400,
-      },
-      {
-        name: 'og',
-        height: 630,
-        position: 'centre',
-        width: 1200,
-      },
-    ],
     mimeTypes: ['image/*'],
   },
 }

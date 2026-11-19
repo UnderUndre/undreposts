@@ -16,7 +16,13 @@ const nextConfig: NextConfig = {
     ],
   },
   turbopack: {
-    root: path.resolve(dirname),
+    // pnpm isolated linker: app deps resolve through the root .pnpm store,
+    // which lives OUTSIDE the app dir — Turbopack refuses junctions leaving
+    // its root ("files outside of the workspace root are not compiled").
+    // Root must therefore cover the whole fork. The repo-root
+    // instrumentation.ts (upstream Sentry wiring) is shadowed by this app's
+    // own no-op instrumentation file.
+    root: path.resolve(dirname, '../..'),
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
@@ -29,4 +35,10 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+// pnpm resolves two `next@16.4.6` instances in this monorepo (different
+// @babel/core peer hashes), so the app-side NextConfig type and the
+// @payloadcms/next-side one are nominally incompatible. Cast to the exact
+// parameter type `withPayload` expects to bridge the duplicate instance.
+export default withPayload(nextConfig as Parameters<typeof withPayload>[0], {
+  devBundleServerPackages: false,
+})
