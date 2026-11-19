@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdminOrAuthor } from '../access/roles'
+import { toggleReactionEndpoint } from '../endpoints/reactions'
+import { runSyndication } from '../syndication/run'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -22,6 +24,15 @@ export const Posts: CollectionConfig = {
     defaultSort: '-publishedAt',
     useAsTitle: 'title',
   },
+  // Collection-scoped custom routes: the router strips the slug before
+  // matching, so the path here is relative to /api/posts.
+  endpoints: [
+    {
+      handler: toggleReactionEndpoint.handler,
+      method: 'post',
+      path: '/:id/reactions',
+    },
+  ],
   fields: [
     {
       name: 'title',
@@ -93,6 +104,29 @@ export const Posts: CollectionConfig = {
     },
   ],
   hooks: {
+    afterChange: [
+      ({ doc, operation, previousDoc, req }) => {
+        // T2.17 / FR-045: syndicate on the FIRST transition to published
+        // (create-as-published or draft → published update). Fire-and-forget
+        // with full error containment (FM-02: platform failures never fail
+        // the local publication).
+        if (
+          (operation === 'create' || operation === 'update') &&
+          doc.status === 'published' &&
+          previousDoc?.status !== 'published' &&
+          process.env.SYNDICATION_DISABLED !== 'true'
+        ) {
+          void runSyndication(req.payload, {
+            id: doc.id,
+            slug: (doc.slug as string | undefined) ?? null,
+            excerpt: (doc.excerpt as string | undefined) ?? null,
+            title: doc.title as string,
+          }).catch((err: unknown) => {
+            req.payload.logger.warn({ err, msg: 'syndication-unhandled' })
+          })
+        }
+      },
+    ],
     beforeChange: [
       ({ data }) => {
         // Stamp publishedAt once, on first transition to published.

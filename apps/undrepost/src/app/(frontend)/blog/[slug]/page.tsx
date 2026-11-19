@@ -1,10 +1,14 @@
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
+import { headers as getHeaders } from 'next/headers.js'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import React from 'react'
 
 import config from '@/payload.config'
+import { readCounters } from '@/lib/counters'
+
+import PostInteractions from './PostInteractions'
 
 type PageArgs = {
   params: Promise<{
@@ -84,9 +88,49 @@ export default async function PostPage({ params }: PageArgs) {
   const doc = post as unknown as {
     author?: { displayName?: null | string }
     content: unknown
+    id: string
     publishedAt?: null | string
     tags?: null | { tag: string }[]
     title: string
+  }
+
+  const payloadConfig = await config
+  const payload = await getPayload({ config: payloadConfig })
+  const { user } = await payload.auth({ headers: await getHeaders() })
+
+  // Interaction snapshot (T2.2/T2.4/T2.5) — live updates stream via SSE.
+  const counterRows = await readCounters(payload, { post: String(doc.id) })
+  const reactions: Record<string, number> = {}
+  for (const row of counterRows) {
+    reactions[row.key] = row.count
+  }
+
+  const commentsResult = await payload.find({
+    collection: 'comments',
+    depth: 1,
+    limit: 50,
+    sort: 'createdAt',
+    where: {
+      and: [{ deletedAt: { exists: false } }, { post: { equals: String(doc.id) } }],
+    },
+  })
+  const initialComments = commentsResult.docs.map((c) => ({
+    author: (c.author as { displayName?: string } | null)?.displayName ?? 'Member',
+    body: c.body as string,
+    id: String(c.id),
+  }))
+
+  let initialMyReactions: string[] = []
+  if (user) {
+    const mine = await payload.find({
+      collection: 'reactions',
+      limit: 20,
+      overrideAccess: true,
+      where: {
+        and: [{ author: { equals: String(user.id) } }, { post: { equals: String(doc.id) } }],
+      },
+    })
+    initialMyReactions = mine.docs.map((r) => r.emojiRef as string)
   }
 
   return (
@@ -113,6 +157,13 @@ export default async function PostPage({ params }: PageArgs) {
         {/* @ts-expect-error — Lexical node shape is validated at runtime by the renderer */}
         <RichText data={doc.content} />
       </div>
+      <PostInteractions
+        canComment={Boolean(user)}
+        initialComments={initialComments}
+        initialMyReactions={initialMyReactions}
+        initialReactions={reactions}
+        postId={String(doc.id)}
+      />
     </article>
   )
 }

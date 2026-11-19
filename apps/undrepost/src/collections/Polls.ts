@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdminOrAuthor } from '../access/roles'
+import { pollVoteEndpoint } from '../endpoints/pollVote'
 
 export const Polls: CollectionConfig = {
   slug: 'polls',
@@ -13,6 +14,14 @@ export const Polls: CollectionConfig = {
   admin: {
     useAsTitle: 'question',
   },
+  // Collection-scoped custom route (see Posts.endpoints note).
+  endpoints: [
+    {
+      handler: pollVoteEndpoint.handler,
+      method: 'post',
+      path: '/:id/vote',
+    },
+  ],
   fields: [
     {
       name: 'post',

@@ -139,16 +139,16 @@ export type SupportedTimezones =
   | 'Pacific/Fiji';
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_7BF359D1".
+ * via the `definition` "LexicalNodes_D7FE818C".
  */
-export type LexicalNodes_7BF359D1 =
+export type LexicalNodes_D7FE818C =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_7BF359D1>
+  | SerializedParagraphNode<LexicalNodes_D7FE818C>
   | SerializedHorizontalRuleNode
   | SerializedUploadNode<'media'>
-  | SerializedQuoteNode<LexicalNodes_7BF359D1>
+  | SerializedQuoteNode<LexicalNodes_D7FE818C>
   | SerializedRelationshipNode<
       | 'members'
       | 'sessions'
@@ -163,16 +163,17 @@ export type LexicalNodes_7BF359D1 =
       | 'question-pool'
       | 'giveaways'
       | 'auctions'
+      | 'counters'
       | 'payload-kv'
       | 'payload-locked-documents'
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedAutoLinkNode<LexicalNodes_7BF359D1, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_7BF359D1, LexicalLinkFields>
-  | SerializedListNode<LexicalNodes_7BF359D1>
-  | SerializedListItemNode<LexicalNodes_7BF359D1>
-  | SerializedHeadingNode<LexicalNodes_7BF359D1>;
+  | SerializedAutoLinkNode<LexicalNodes_D7FE818C, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_D7FE818C, LexicalLinkFields>
+  | SerializedListNode<LexicalNodes_D7FE818C>
+  | SerializedListItemNode<LexicalNodes_D7FE818C>
+  | SerializedHeadingNode<LexicalNodes_D7FE818C>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "LexicalNodes_3DE324E4".
@@ -206,6 +207,7 @@ export interface Config {
     'question-pool': QuestionPool;
     giveaways: Giveaway;
     auctions: Auction;
+    counters: Counter;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -228,6 +230,7 @@ export interface Config {
     'question-pool': QuestionPoolSelect<false> | QuestionPoolSelect<true>;
     giveaways: GiveawaysSelect<false> | GiveawaysSelect<true>;
     auctions: AuctionsSelect<false> | AuctionsSelect<true>;
+    counters: CountersSelect<false> | CountersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -445,7 +448,7 @@ export interface Post {
    * URL path segment: /blog/<slug>. Unique per instance (data-model).
    */
   slug: string;
-  content: LexicalRichText<LexicalNodes_7BF359D1>;
+  content: LexicalRichText<LexicalNodes_D7FE818C>;
   author: number | Member;
   status?: ('draft' | 'published' | 'archived') | null;
   publishedAt?: string | null;
@@ -743,6 +746,30 @@ export interface Auction {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "counters".
+ */
+export interface Counter {
+  id: number;
+  post?: (number | null) | Post;
+  poll?: (number | null) | Poll;
+  /**
+   * emojiRef for post counters, optionId for poll counters.
+   */
+  key: string;
+  count?: number | null;
+  createdBy?: {
+    relationTo: 'members';
+    value: number | Member;
+  } | null;
+  updatedBy?: {
+    relationTo: 'members';
+    value: number | Member;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -820,6 +847,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'auctions';
         value: number | Auction;
+      } | null)
+    | ({
+        relationTo: 'counters';
+        value: number | Counter;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1186,6 +1217,20 @@ export interface AuctionsSelect<T extends boolean = true> {
         showCountdown?: T;
         theme?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "counters_select".
+ */
+export interface CountersSelect<T extends boolean = true> {
+  post?: T;
+  poll?: T;
+  key?: T;
+  count?: T;
   createdBy?: T;
   updatedBy?: T;
   updatedAt?: T;
